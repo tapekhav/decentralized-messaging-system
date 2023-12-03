@@ -32,3 +32,5 @@
 *.app
 
 server/dump.rdb
+server/build
+.vscode
