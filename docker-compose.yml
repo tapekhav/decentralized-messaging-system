@@ -1,4 +1,26 @@
 version: '3.8'
 
 services:
-  
+  server:
+    image: server:latest
+    restart: on-failure
+    build: ./server
+
+    ports:
+      - '8080:8080'
+
+    volumes:
+      - ./server/:/usr/server/
+    
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    build: ./database/redis
+
+    ports: 
+      - '6379:6379'
+
+    volumes:
+      - ./server/:/usr/database/redis
