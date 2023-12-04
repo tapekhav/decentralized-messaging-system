@@ -6,6 +6,5 @@ protobuf/3.21.12
 redis-plus-plus/1.3.10
 
 [generators]
+CMakeToolchain
 CMakeDeps
-cmake_find_package
-cmake_paths
