@@ -15,6 +15,9 @@ services:
     depends_on:
       - redis
 
+    networks:
+      - main_network
+
   redis:
     image: redis:latest
     build: ./database/redis
@@ -24,3 +27,9 @@ services:
 
     volumes:
       - ./server/:/usr/database/redis
+
+    networks:
+      - main_network
+  networks:
+    main_network:
+      driver: bridge
