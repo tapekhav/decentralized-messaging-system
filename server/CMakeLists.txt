@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(DecetralizedMessagingSystem)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+find_package(ZeroMQ)
+
 include(CheckCXXCompilerFlag)
 
 CHECK_CXX_COMPILER_FLAG ("-std=c++20" COMPILER_HAVE_CPP20)
