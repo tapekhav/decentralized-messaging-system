@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message ClientMessage {
+    string ip = 1;
+    repeated string message = 2;
+}
+
+//! TODO write message for Session and write normal server service
+message Session {
+
+}
+
+service ServerService {
+    rpc SendMessage(ClientMessage) returns (ClientMessage);
+}
