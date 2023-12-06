@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(DecetralizedMessagingSystem)
 
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+
 find_package(ZeroMQ)
 
 include(CheckCXXCompilerFlag)
@@ -25,13 +29,17 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/W4)
 endif()
 
-add_executable(
-    ${PROJECT_NAME}
-    main.cpp
-)
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
 endif()
+
+
+add_subdirectory("libs/")
+
+add_executable(
+    ${PROJECT_NAME}
+    main.cpp
+)
+target_link_libraries(${PROJECT_NAME} core)
