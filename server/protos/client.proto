@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+service ClientService {
+    rpc Response(ClientMessage) returns (ServerResponse) {}
+}
+
+message ClientMessage {
+    string nickname = 1;
+    string message = 2;
+}
+
+message Session {
+    uint32 session_id = 1;
+    string opponent_ip = 2;
+}
+
+message ServerResponse {
+    Session session = 1;
+}

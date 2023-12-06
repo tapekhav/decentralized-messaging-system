@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+service IpDatabaseService {
+    rpc GetIpDatabase(IpRequest) returns (google.protobuf.StringValue) {}
+}
+
+message IpRequest {
+    string ip = 1;
+} 

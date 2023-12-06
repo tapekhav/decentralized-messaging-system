@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 project(DecetralizedMessagingSystem)
 
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+
 find_package(ZeroMQ)
 
 include(CheckCXXCompilerFlag)
@@ -25,13 +29,49 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/W4)
 endif()
 
-add_executable(
-    ${PROJECT_NAME}
-    main.cpp
-)
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
 endif()
+
+
+
+set(
+    source_files 
+    message.proto
+)
+
+set(output_files "")
+
+foreach(proto_file ${source_files})
+    get_filename_component(output_file_name ${proto_file} NAME_WE)
+    list(APPEND output_files
+        ${CMAKE_CURRENT_BINARY_DIR}/model/${output_file_name}.pb.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/model/${output_file_name}.pb.h
+    )
+
+    add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
+            COMMAND protoc
+            ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/protos
+            -I${CMAKE_CURRENT_SOURCE_DIR}/protos
+            protos/${proto_file}
+            DEPENDS protos/${proto_file}
+    )
+endforeach()
+
+
+add_subdirectory("libs/")
+
+add_executable(
+    ${PROJECT_NAME}
+    main.cpp
+)
+target_link_libraries(
+    ${PROJECT_NAME} 
+    PRIVATE
+    core
+    libzmq-static
+)
