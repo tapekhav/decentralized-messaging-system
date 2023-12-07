@@ -6,7 +6,7 @@ set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
 
-find_package(ZeroMQ)
+# find_package(ZeroMQ)
 
 include(CheckCXXCompilerFlag)
 
@@ -35,33 +35,35 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
 endif()
 
-
-
-set(
-    source_files 
-    message.proto
-)
+file(GLOB PROTO_FILES "protos/*.proto")
+set(SOURCE_PROTO_FILES ${PROTO_FILES})
 
 set(output_files "")
 
-foreach(proto_file ${source_files})
+foreach(proto_file ${SOURCE_PROTO_FILES})
     get_filename_component(output_file_name ${proto_file} NAME_WE)
     list(APPEND output_files
-        ${CMAKE_CURRENT_BINARY_DIR}/model/${output_file_name}.pb.cc
-        ${CMAKE_CURRENT_BINARY_DIR}/model/${output_file_name}.pb.h
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
     )
 
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
             ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
-            COMMAND protoc
-            ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/protos
-            -I${CMAKE_CURRENT_SOURCE_DIR}/protos
-            protos/${proto_file}
-            DEPENDS protos/${proto_file}
+        COMMAND
+            protoc
+            ARGS
+                --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/protos
+                -I${CMAKE_CURRENT_SOURCE_DIR}/protos
+                ${proto_file}
+        DEPENDS
+            ${proto_file}
     )
 endforeach()
 
+add_custom_target(proto_target ALL DEPENDS ${output_files})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/protos)
 
 add_subdirectory("libs/")
 
@@ -73,5 +75,5 @@ target_link_libraries(
     ${PROJECT_NAME} 
     PRIVATE
     core
-    libzmq-static
+    #libzmq-static
 )

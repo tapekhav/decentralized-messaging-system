@@ -8,7 +8,7 @@ message ClientMessage {
     string nickname = 1;
     string message = 2;
 }
-
+//! TODO supplement the session later
 message Session {
     uint32 session_id = 1;
     string opponent_ip = 2;
