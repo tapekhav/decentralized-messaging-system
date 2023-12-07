@@ -6,7 +6,7 @@ set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
 
-# find_package(ZeroMQ)
+find_package(ZeroMQ REQUIRED)
 
 include(CheckCXXCompilerFlag)
 
@@ -75,5 +75,5 @@ target_link_libraries(
     ${PROJECT_NAME} 
     PRIVATE
     core
-    #libzmq-static
+    ${ZeroMQ_LIBRARIES}
 )
