@@ -75,5 +75,5 @@ target_link_libraries(
     ${PROJECT_NAME} 
     PRIVATE
     core
-    ${ZeroMQ_LIBRARIES}
+    libzmq-static
 )
