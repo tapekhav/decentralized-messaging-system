@@ -1,4 +1,4 @@
-set(TARGET_NAME core)
+set(TARGET_NAME ip_db_connector)
 
 add_library(${TARGET_NAME})
 

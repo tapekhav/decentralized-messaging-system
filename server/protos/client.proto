@@ -3,7 +3,7 @@ syntax = "proto3";
 package server;
 
 service ClientService {
-    rpc Response(ClientMessage) returns (ServerResponse) {}
+    rpc response(ClientMessage) returns (ServerResponse) {}
 }
 
 message ClientMessage {

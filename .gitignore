@@ -36,4 +36,6 @@ build/
 
 server/dump.rdb
 server/build
+server/.cache
+
 .vscode

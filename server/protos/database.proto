@@ -5,7 +5,7 @@ import "google/protobuf/wrappers.proto";
 package server;
 
 service IpDatabaseService {
-    rpc GetIpDatabase(IpRequest) returns (google.protobuf.StringValue) {}
+    rpc getIp(IpRequest) returns (google.protobuf.StringValue) {}
 }
 
 message IpRequest {
