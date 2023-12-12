@@ -8,10 +8,14 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "./build")
 
 find_package(ZeroMQ REQUIRED)
-find_package(gRPC REQUIRED)
+
+find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+if(NOT _GRPC_CPP_PLUGIN_EXECUTABLE)
+    message(FATAL_ERROR "gRPC plugin not found. Make sure it is installed and available in your PATH.")
+endif()
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG ("-std=c++20" COMPILER_HAVE_CPP20)
@@ -30,10 +34,10 @@ if (MSVC_VERSION GREATER_EQUAL "1900")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    # add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wformat -Wunused -Wshadow -Wuninitialized)
+    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wformat -Wunused -Wshadow -Wuninitialized)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # add_compile_options(/W4)
+    add_compile_options(/W4)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
 endif()
 
@@ -47,17 +51,28 @@ foreach(proto_file ${SOURCE_PROTO_FILES})
     list(APPEND output_files
         ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
         ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.h
     )
 
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
             ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.cc
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.h
         COMMAND
             protoc
             ARGS
                 --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/protos
                 -I${CMAKE_CURRENT_SOURCE_DIR}/protos
+                ${proto_file}
+        COMMAND
+            protoc
+            ARGS
+                --grpc_out=${CMAKE_CURRENT_BINARY_DIR}/protos
+                -I${CMAKE_CURRENT_SOURCE_DIR}/protos
+                --plugin=protoc-gen-grpc=${_GRPC_CPP_PLUGIN_EXECUTABLE}
                 ${proto_file}
         DEPENDS
             ${proto_file}
@@ -89,4 +104,5 @@ target_link_libraries(
     ip_db_connector
     ${ZeroMQ_LIBRARIES}
     ${CONAN_LIBS_ABSEIL}
+    ${_GRPC_LIBRARIES}
 )
