@@ -3,13 +3,13 @@ syntax = "proto3";
 package server;
 
 service IpDatabaseService {
-    rpc getIp(IpRequest) returns (IpResponse) {};
+    rpc getIp(IpRequest) returns (DatabaseResponse) {};
 }
 
 message IpRequest {
-    string ip = 1;
+    string name = 1;
 } 
 
-message IpResponse {
-    string result = 1;
+message DatabaseResponse {
+    string ip = 1;
 }

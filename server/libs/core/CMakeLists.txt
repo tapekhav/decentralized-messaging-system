@@ -1,13 +1,23 @@
 set(TARGET_NAME core)
 
-add_library(${TARGET_NAME})
-
 file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)
 
-target_sources(
+add_library(
+    ${TARGET_NAME}
+    STATIC
+    ${HEADERS}
+    ${SOURCES}
+)
+
+target_include_directories(
     ${TARGET_NAME}
     PUBLIC
-    ${HEADERS} 
-    ${SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(
+    ${TARGET_NAME}
+    PUBLIC
+    gRPC::grpc++ 
 )

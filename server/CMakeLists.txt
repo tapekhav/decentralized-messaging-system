@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(DecentralizedMessagingSystem)
+project(DecentralizedMessagingSystemServer)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -87,14 +87,14 @@ add_subdirectory("libs/")
 
 add_executable(
     ${PROJECT_NAME}
-    ${CONAN_LIB_DIRS}
     main.cpp
 )
 
 target_link_libraries(
     ${PROJECT_NAME} 
+    ${ZeroMQ_LIBRARIES}
     core
     ip_db_connector
-    ${ZeroMQ_LIBRARIES}
-    ${_GRPC_LIBRARIES}
+    gRPC::grpc++
+    gRPC::grpc++_reflection
 )

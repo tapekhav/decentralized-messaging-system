@@ -2,15 +2,14 @@ syntax = "proto3";
 
 package server;
 
-service ClientService {
-    rpc response(ClientMessage) returns (ServerResponse) {}
+service SessionService {
+    rpc getSession(ClientMessage) returns (ServerResponse) {}
 }
 
 message ClientMessage {
     string nickname = 1;
-    string message = 2;
 }
-//! TODO supplement the session later
+
 message Session {
     uint32 session_id = 1;
     string opponent_ip = 2;

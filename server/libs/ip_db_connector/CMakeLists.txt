@@ -3,7 +3,12 @@ set(TARGET_NAME ip_db_connector)
 file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)
 
-add_library(${TARGET_NAME} ${SOURCES})
+add_library(
+    ${TARGET_NAME}
+    STATIC
+    ${HEADERS}
+    ${SOURCES}
+)
 
 target_include_directories(
     ${TARGET_NAME}
@@ -11,9 +16,8 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_sources(
+target_link_libraries(
     ${TARGET_NAME}
     PUBLIC
-    ${HEADERS} 
-    ${SOURCES}
+    gRPC::grpc++ 
 )
