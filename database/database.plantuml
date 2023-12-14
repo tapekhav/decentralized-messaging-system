@@ -5,14 +5,14 @@
 
 ENTITY Users {
   PRIMARY_KEY user_id : int(PK)
+  nickname : varchar(255)
+  ip_v4 : varchar(15)
 }
 
 ENTITY UserInfo {
-  PRIMARY_KEY order_id : int(PK)
-  nickname : varchar(255)
+  PRIMARY_KEY info_id : int(PK)
   name : varchar(255)
   birth_date : date
-  ip_v4 : varchar(15)
   additional_information : varchar(255)
   FOREIGN_KEY user_id : int(FK)
 }
