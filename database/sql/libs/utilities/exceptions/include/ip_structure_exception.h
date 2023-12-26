@@ -2,12 +2,12 @@
 
 #include <base_soci_exception.h>
 
-static const std::string what_string = "Incorrect structure of ip_v4 passed to the request";
+static const std::string kIpError = "Incorrect structure of ip_v4 passed to the request";
 
 class IpStructureException final : public SociBaseException
 {
 public:
-    IpStructureException() : SociBaseException(what_string) {}
+    IpStructureException() : SociBaseException(kIpError) {}
 
     [[nodiscard]] const char* name() const noexcept final { return "IpStructureException"; }
     
