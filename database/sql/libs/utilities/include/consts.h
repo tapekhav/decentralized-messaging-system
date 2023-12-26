@@ -8,6 +8,7 @@ namespace consts
 {
     namespace db 
     {
+        const std::size_t kNumOfUsersColumns = 2;
         const std::size_t kNumOfInsertQueryArgs = 5;
         const std::size_t kMaxWordSize = 255;
     }

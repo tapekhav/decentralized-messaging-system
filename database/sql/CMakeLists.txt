@@ -13,6 +13,7 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "./build")
 find_package(ZeroMQ REQUIRED)
 find_package(gRPC REQUIRED)
 find_package(SOCI REQUIRED)
+find_package(PostgreSQL REQUIRED)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG ("-std=c++20" COMPILER_HAVE_CPP20)
@@ -39,8 +40,13 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 include_directories(
+    libs/core/include
+    libs/utilities/include
+    libs/utilities/exceptions/include
     ${gRPC_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
+    ${SOCI_INCLUDE_DIRS}
+    ${PostgreSQL_INCLUDE_DIRS}
 )
 
 add_subdirectory("libs/")
@@ -53,8 +59,10 @@ add_executable(
 target_link_libraries(
     ${PROJECT_NAME} 
     core
+    utilities
     ${ZeroMQ_LIBRARIES}
     ${_GRPC_LIBRARIES}
-    SOCI::soci_core_static
+    ${SOCI_LIBRARIES}
+    ${PostgreSQL_LIBRARIES}
 )
 
