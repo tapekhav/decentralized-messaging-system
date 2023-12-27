@@ -1,3 +1,4 @@
+#include <array>
 #include <string>
 #include <users_db_manager.h>
 
@@ -14,18 +15,16 @@
 #include <validation_funcs.h>
 #include <consts.h>
 
-static const std::string kUri = "postgresql://postgres:1234@localhost:5433/users";
-
-UsersDatabaseManager::UsersDatabaseManager()
+UsersDatabaseManager::UsersDatabaseManager(const std::string& uri)
 { 
-    connectToDatabase(); 
+    connectToDatabase(uri); 
 }
 
-void UsersDatabaseManager::connectToDatabase()
+void UsersDatabaseManager::connectToDatabase(const std::string& uri)
 {
     try 
     {
-        _session.open(kUri);
+        _session.open(uri);
     } 
     catch (const soci::soci_error& error)
     {
@@ -77,7 +76,7 @@ void UsersDatabaseManager::changeEnd(std::string& query)
     query += ");";
 }
 
-void UsersDatabaseManager::insertQuery(string_list&& args) 
+void UsersDatabaseManager::insertQuery(mod_query_list&& args) 
 {
     if (!checkArgs(args)) 
     {
@@ -89,7 +88,7 @@ void UsersDatabaseManager::insertQuery(string_list&& args)
     insertIntoUserInfoQuery(args);
 }
 
-void UsersDatabaseManager::insertIntoUsersQuery(const string_list& args)
+void UsersDatabaseManager::insertIntoUsersQuery(const mod_query_list& args)
 {
     std::string insert_into_users("INSERT INTO Users \
                                         (user_id, nickname, ip_v4) \
@@ -105,7 +104,7 @@ void UsersDatabaseManager::insertIntoUsersQuery(const string_list& args)
     executeModifyingRawQuery(insert_into_users);
 }
 
-void UsersDatabaseManager::insertIntoUserInfoQuery(const string_list& args)
+void UsersDatabaseManager::insertIntoUserInfoQuery(const mod_query_list& args)
 {
     std::string insert_into_user_info("INSERT INTO UserInfo \
                                             (info_id, name, birth_date, additional_information, user_id) \
@@ -122,7 +121,7 @@ void UsersDatabaseManager::insertIntoUserInfoQuery(const string_list& args)
     executeModifyingRawQuery(insert_into_user_info);
 }
 
-bool checkArgs(const string_list& args)
+auto checkArgs(const mod_query_list& args) -> bool
 {
     try
     {
@@ -158,4 +157,43 @@ bool checkArgs(const string_list& args)
 void UsersDatabaseManager::deleteQuery(const std::string& where_condition)
 {
 
+}
+
+auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, 
+                                                std::size_t num_of_columns) ->
+                                                std::vector<return_query_list>
+{
+    try
+    {
+        soci::rowset<soci::row> rows = (_session.prepare << query);
+
+        std::vector<return_query_list> table; 
+        for (const soci::row& row : rows)
+        {
+            return_query_list row_values;
+            for (std::size_t i = 0; i < num_of_columns; i++)
+            {
+                row.get<std::string>(i, row_values.at(i));
+            }
+
+            table.push_back(row_values);
+        }
+
+        return table;
+    } 
+    catch (const soci::soci_error& e)
+    {
+        std::cerr << "Return raw query error: " << e.what() << std::endl;
+    }
+    
+    return {};
+}
+
+auto UsersDatabaseManager::selectAllQuery() -> std::vector<return_query_list>
+{
+    std::string select_all_query = "SELECT * \
+                                    FROM Users \
+                                    INNER JOIN UserInfo USING(user_id);";
+
+    return executeReturnRawQuery(select_all_query, consts::db::kNumOfAllColumns);
 }

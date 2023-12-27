@@ -8,6 +8,9 @@ namespace consts
 {
     namespace db 
     {
+        const std::string kUri = "postgresql://postgres:1234@localhost:5433/users";
+
+        const std::size_t kNumOfAllColumns = 7;
         const std::size_t kNumOfUsersColumns = 2;
         const std::size_t kNumOfInsertQueryArgs = 5;
         const std::size_t kMaxWordSize = 255;

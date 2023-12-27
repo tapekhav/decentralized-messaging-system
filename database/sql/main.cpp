@@ -1,6 +1,5 @@
 #include <iostream>
-#include <core.h>
-#include <soci/soci.h>
+#include <users_db_manager.h>
 
 int main()
 {
