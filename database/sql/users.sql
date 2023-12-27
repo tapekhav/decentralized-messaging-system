@@ -25,11 +25,10 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public."UserInfo" (
-    info_id integer NOT NULL,
     birth_date date NOT NULL,
     user_id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    additional_information character varying(255) DEFAULT NULL::character varying
+    name character varying(60) NOT NULL,
+    additional_information character varying(60) DEFAULT NULL::character varying
 );
 
 
@@ -40,7 +39,7 @@ ALTER TABLE public."UserInfo" OWNER TO postgres;
 --
 
 CREATE TABLE public."Users" (
-    nickname character varying(255) NOT NULL,
+    nickname character varying(60) NOT NULL,
     ip_v4 character varying(15),
     user_id integer NOT NULL
 );
@@ -52,7 +51,9 @@ ALTER TABLE public."Users" OWNER TO postgres;
 -- Data for Name: UserInfo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."UserInfo" (info_id, birth_date, user_id, name, additional_information) FROM stdin;
+COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM stdin;
+2003-06-27	1	Test	ahah
+2003-07-27	2	Test2	яzxc
 \.
 
 
@@ -61,15 +62,9 @@ COPY public."UserInfo" (info_id, birth_date, user_id, name, additional_informati
 --
 
 COPY public."Users" (nickname, ip_v4, user_id) FROM stdin;
+test	127.0.0.1	1
+test2	127.0.0.2	2
 \.
-
-
---
--- Name: UserInfo UserInfo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."UserInfo"
-    ADD CONSTRAINT "UserInfo_pkey" PRIMARY KEY (info_id);
 
 
 --
@@ -81,6 +76,14 @@ ALTER TABLE ONLY public."Users"
 
 
 --
+-- Name: UserInfo user_id_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."UserInfo"
+    ADD CONSTRAINT user_id_pk PRIMARY KEY (user_id) INCLUDE (user_id);
+
+
+--
 -- Name: fki_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -88,11 +91,18 @@ CREATE INDEX fki_user_id ON public."UserInfo" USING btree (user_id);
 
 
 --
--- Name: UserInfo user_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: fki_user_id_fk; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX fki_user_id_fk ON public."UserInfo" USING btree (user_id);
+
+
+--
+-- Name: UserInfo user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."UserInfo"
-    ADD CONSTRAINT user_id FOREIGN KEY (user_id) REFERENCES public."Users"(user_id);
+    ADD CONSTRAINT user_id_fk FOREIGN KEY (user_id) REFERENCES public."Users"(user_id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
