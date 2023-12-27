@@ -1,4 +1,5 @@
 #include <array>
+#include <functional>
 #include <string>
 #include <users_db_manager.h>
 
@@ -15,9 +16,30 @@
 #include <validation_funcs.h>
 #include <consts.h>
 
+using str_type = const std::string&;
+
+static const std::map<std::string, std::function<void(str_type value)>> kChecksMap = 
+{
+    {"ip_v4", [](str_type value) { if (!ip_v4::isIpValid(value)) { throw IpStructureException(); }} },
+    {"birth_date", [](str_type value) { if (!date::isDateValid(value)) { throw DateStructureException(); }} },
+    {"nickname", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException();}}},
+    {"name", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException();}}},
+    {"additional_information", [](str_type value) { if (value.size() > 255) { throw SizeException();}}}
+};
+
+static const std::map<std::size_t, std::string> kIndexMap = 
+{
+    {0, "ip_v4"},
+    {1, "birth_date"},
+    {2, "nickname"},
+    {3, "name"},
+    {4, "additional_information"}
+};
+
 UsersDatabaseManager::UsersDatabaseManager(const std::string& uri)
 { 
     connectToDatabase(uri); 
+    setPK();
 }
 
 void UsersDatabaseManager::connectToDatabase(const std::string& uri)
@@ -88,35 +110,42 @@ void UsersDatabaseManager::insertQuery(mod_query_list&& args)
     insertIntoUserInfoQuery(args);
 }
 
+void UsersDatabaseManager::finishInsertQuery(std::string& query,
+                                             const mod_query_list& args,
+                                             limits_type limits)
+{
+    addKey(query);
+    for (std::size_t i = limits.first; i < limits.second; ++i)
+    {
+        addString(query, args[i]);
+    }
+    changeEnd(query);
+}
+
 void UsersDatabaseManager::insertIntoUsersQuery(const mod_query_list& args)
 {
-    std::string insert_into_users("INSERT INTO Users \
+    std::string insert_into_users("INSERT INTO public.\"Users\" \
                                         (user_id, nickname, ip_v4) \
                                       VALUES(");
-    
-    addKey(insert_into_users);
-    for (std::size_t i = 0; i < consts::db::kNumOfUsersColumns; ++i)
-    {
-        addString(insert_into_users, args[i]);
-    }
-    changeEnd(insert_into_users);
+    finishInsertQuery(
+        insert_into_users, 
+        args, 
+        {0, consts::db::kNumOfUsersColumns}
+    );
 
     executeModifyingRawQuery(insert_into_users);
 }
 
 void UsersDatabaseManager::insertIntoUserInfoQuery(const mod_query_list& args)
 {
-    std::string insert_into_user_info("INSERT INTO UserInfo \
-                                            (info_id, name, birth_date, additional_information, user_id) \
+    std::string insert_into_user_info("INSERT INTO public.\"UserInfo\" \
+                                            (user_id, name, birth_date, additional_information) \
                                           VALUES(");
-
-    addKey(insert_into_user_info);
-    for (std::size_t i = consts::db::kNumOfUsersColumns; i < consts::db::kNumOfUsersColumns; ++i)
-    {
-        addString(insert_into_user_info, args[i]);
-    }
-    addKey(insert_into_user_info);
-    changeEnd(insert_into_user_info);
+    finishInsertQuery(
+        insert_into_user_info, 
+        args, 
+        {consts::db::kNumOfUsersColumns, consts::db::kNumOfDataArgs}
+    );
     
     executeModifyingRawQuery(insert_into_user_info);
 }
@@ -125,24 +154,9 @@ auto checkArgs(const mod_query_list& args) -> bool
 {
     try
     {
-        if (!ip_v4::isIpValid(*(args.begin() + 1)))
+        for (std::size_t i = 0; i < consts::db::kNumOfDataArgs; ++i)
         {
-            throw IpStructureException();
-        }
-
-        if (!date::isDateValid(*(args.begin() + 2)))
-        {
-            throw DateStructureException();
-        }
-
-        std::size_t index = 0;
-        for (const auto& col : args)
-        {
-            if (col.size() > consts::db::kMaxWordSize)
-            {
-                throw SizeException(index);
-            }
-            ++index;
+            kChecksMap.at(kIndexMap.at(i))(args[i]);
         }
     }
     catch (const SociBaseException& error)
@@ -154,9 +168,14 @@ auto checkArgs(const mod_query_list& args) -> bool
     return true;
 }
 
-void UsersDatabaseManager::deleteQuery(const std::string& where_condition)
+auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
 {
+    std::string select_user_query = "SELECT * \
+                                     FROM public.\"Users\" \
+                                     INNER JOIN public.\"UserInfo\" USING(user_id) \
+                                     WHERE user_id = " + std::to_string(user_id) + ";";
 
+    return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs)[0];
 }
 
 auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, 
@@ -192,8 +211,44 @@ auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query,
 auto UsersDatabaseManager::selectAllQuery() -> std::vector<return_query_list>
 {
     std::string select_all_query = "SELECT * \
-                                    FROM Users \
-                                    INNER JOIN UserInfo USING(user_id);";
+                                    FROM public.\"Users\" \
+                                    INNER JOIN public.\"UserInfo\" USING(user_id);";
 
     return executeReturnRawQuery(select_all_query, consts::db::kNumOfAllColumns);
+}
+
+void UsersDatabaseManager::deleteUser(std::size_t user_id)
+{    
+    std::string delete_user_query = "DELETE FROM public.\"Users\" \
+                                     WHERE user_id = " + std::to_string(user_id) + ";";
+    executeModifyingRawQuery(delete_user_query);
+}
+
+void UsersDatabaseManager::setPK()
+{
+    std::string pk_query = "SELECT MAX(user_id) FROM public.\"Users\";";
+
+    auto result = executeReturnRawQuery(pk_query, 1);
+
+    _primary_key = std::stoi(result[0][0]);
+}
+
+void UsersDatabaseManager::updateQuery(std::size_t user_id, std::string&& column, std::string&& value)
+{
+    try 
+    {
+        kChecksMap.at(column)(value);
+    }
+    catch(const SociBaseException& error)
+    {
+        std::cerr << error.name() << ": " << error.what() << "\n";
+    }
+
+    std::string update_query = "UPDATE public.\"Users\" \
+                                SET " + column + " = \'" + value + "\' \
+                                FROM public.\"UserInfo\" \
+                                WHERE public.\"Users\".user_id = public.\"UserInfo\".user_id \
+                                AND Users.user_id = " + std::to_string(user_id) + ";";
+
+    executeModifyingRawQuery(update_query);
 }
