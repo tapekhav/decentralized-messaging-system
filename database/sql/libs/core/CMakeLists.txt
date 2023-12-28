@@ -11,5 +11,10 @@ add_library(
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${SOCI_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    ${TARGET_NAME}
+    PRIVATE
+    utilities
 )

@@ -8,8 +8,7 @@ namespace consts
 {
     namespace db 
     {
-        const std::string kUri = "postgresql://postgres:1234@127.0.0.1:5433/users";
-
+        const std::string kUri = "dbname=users user=postgres password=1234 host=127.0.0.1 port=5433";
         const std::size_t kNumOfAllColumns = 7;
         const std::size_t kNumOfUsersColumns = 2;
         const std::size_t kNumOfDataArgs = 5;

@@ -1,14 +1,13 @@
 #pragma once
 
-#include <base_soci_exception.h>
-#include <string>
+#include <base_exception.h>
 
 static const std::string kSizeError = "Incorrect word size under index";
 
-class SizeException final : public SociBaseException
+class SizeException final : public BaseException
 {
 public:
-    explicit SizeException() : SociBaseException(kSizeError) {}
+    explicit SizeException() : BaseException(kSizeError) {}
 
     [[nodiscard]] const char* name() const noexcept final { return "SizeException"; }
     

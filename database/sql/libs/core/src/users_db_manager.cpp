@@ -1,20 +1,13 @@
-#include <array>
-#include <functional>
-#include <string>
 #include <users_db_manager.h>
 
 #include <exception>
 #include <iostream>
-#include <cstddef>
-#include <memory>
-#include <vector>
 
 #include <insert_number_arguments_exception.h>
 #include <date_structure_exception.h>
 #include <ip_structure_exception.h>
 #include <size_of_word_exception.h>
 #include <validation_funcs.h>
-#include <consts.h>
 
 using str_type = const std::string&;
 
@@ -22,9 +15,9 @@ static const std::map<std::string, std::function<void(str_type value)>> kChecksM
 {
     {"ip_v4", [](str_type value) { if (!ip_v4::isIpValid(value)) { throw IpStructureException(); }} },
     {"birth_date", [](str_type value) { if (!date::isDateValid(value)) { throw DateStructureException(); }} },
-    {"nickname", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException();}}},
-    {"name", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException();}}},
-    {"additional_information", [](str_type value) { if (value.size() > 255) { throw SizeException();}}}
+    {"nickname", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException(); }}},
+    {"name", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException(); }}},
+    {"additional_information", [](str_type value) { if (value.size() > 255) { throw SizeException(); }}}
 };
 
 static const std::map<std::size_t, std::string> kIndexMap = 
@@ -46,9 +39,9 @@ void UsersDatabaseManager::connectToDatabase(const std::string& uri)
 {
     try 
     {
-        _session.open(uri);
+        _connection = pqxx::connection(uri);
     } 
-    catch (const soci::soci_error& error)
+    catch (const pqxx::broken_connection& error)
     {
         std::cerr << "Error while connecting: " << error.what() << '\n';
     }
@@ -58,9 +51,9 @@ void UsersDatabaseManager::disconnectFromDatabase()
 {
     try 
     {
-        _session.close();
+        _connection.close();
     } 
-    catch (const soci::soci_error& error)
+    catch (const pqxx::broken_connection& error)
     {
         std::cerr << "Error while disconnecting: " << error.what() << '\n';
     }
@@ -70,14 +63,13 @@ void UsersDatabaseManager::executeModifyingRawQuery(const std::string& query)
 {
     try 
     {
-        _session.begin();
-        _session << query;
-        _session.commit();
+        pqxx::work txn(_connection);
+        txn.exec(query);
+        txn.commit();
     }
-    catch (const soci::soci_error& error)
+    catch (const pqxx::sql_error& error)
     {
-        std::cerr << "Error while disconnecting: " << error.what() << '\n';
-        _session.rollback();
+        std::cerr << "Error while executing modifying query: " << error.what() << '\n';
     }
 }
 
@@ -150,7 +142,7 @@ void UsersDatabaseManager::insertIntoUserInfoQuery(const mod_query_list& args)
     executeModifyingRawQuery(insert_into_user_info);
 }
 
-auto checkArgs(const mod_query_list& args) -> bool
+bool UsersDatabaseManager::checkArgs(const mod_query_list& args)
 {
     try
     {
@@ -159,7 +151,7 @@ auto checkArgs(const mod_query_list& args) -> bool
             kChecksMap.at(kIndexMap.at(i))(args[i]);
         }
     }
-    catch (const SociBaseException& error)
+    catch (const BaseException& error)
     {
         std::cerr << error.name() << ": " << error.what() << "\n"; 
         return false;
@@ -178,33 +170,35 @@ auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
     return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs)[0];
 }
 
-auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, 
-                                                std::size_t num_of_columns) ->
-                                                std::vector<return_query_list>
+auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, std::size_t num_of_columns) ->
+    std::vector<return_query_list>
 {
     try
     {
-        soci::rowset<soci::row> rows = (_session.prepare << query);
+        pqxx::nontransaction txn(_connection);
 
-        std::vector<return_query_list> table; 
-        for (const soci::row& row : rows)
+        pqxx::result result = txn.exec(query);
+        txn.commit();
+
+        std::vector<return_query_list> table;
+        for (const auto& row : result)
         {
             return_query_list row_values;
             for (std::size_t i = 0; i < num_of_columns; i++)
             {
-                row.get<std::string>(i, row_values.at(i));
+                row.at(static_cast<int>(i)).to(row_values[i]);
             }
 
             table.push_back(row_values);
         }
 
         return table;
-    } 
-    catch (const soci::soci_error& e)
+    }
+    catch (const pqxx::sql_error& e)
     {
         std::cerr << "Return raw query error: " << e.what() << std::endl;
     }
-    
+
     return {};
 }
 
@@ -239,7 +233,7 @@ void UsersDatabaseManager::updateQuery(std::size_t user_id, std::string&& column
     {
         kChecksMap.at(column)(value);
     }
-    catch(const SociBaseException& error)
+    catch(const BaseException& error)
     {
         std::cerr << error.name() << ": " << error.what() << "\n";
     }

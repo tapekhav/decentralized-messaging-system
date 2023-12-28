@@ -1,13 +1,13 @@
 #pragma once
 
-#include <base_soci_exception.h>
+#include <base_exception.h>
 
 static const std::string kIpError = "Incorrect structure of ip_v4 passed to the request";
 
-class IpStructureException final : public SociBaseException
+class IpStructureException final : public BaseException
 {
 public:
-    IpStructureException() : SociBaseException(kIpError) {}
+    IpStructureException() : BaseException(kIpError) {}
 
     [[nodiscard]] const char* name() const noexcept final { return "IpStructureException"; }
     

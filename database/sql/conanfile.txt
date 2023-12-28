@@ -3,7 +3,8 @@ grpc/1.54.3
 zeromq/4.3.5
 gtest/1.14.0
 protobuf/3.21.12
-soci/4.0.3
+libpqxx/7.8.1
+libpq/15.4
 
 [generators]
 CMakeToolchain
