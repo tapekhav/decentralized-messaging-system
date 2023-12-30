@@ -35,6 +35,20 @@ CREATE TABLE public."UserInfo" (
 ALTER TABLE public."UserInfo" OWNER TO postgres;
 
 --
+-- Name: UserInfo_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."UserInfo" ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."UserInfo_user_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: Users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -48,12 +62,24 @@ CREATE TABLE public."Users" (
 ALTER TABLE public."Users" OWNER TO postgres;
 
 --
+-- Name: Users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Users" ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public."Users_user_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Data for Name: UserInfo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM stdin;
-2003-06-27	1	Test	ahah
-2003-07-27	2	Test2	яzxc
 \.
 
 
@@ -62,9 +88,21 @@ COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM 
 --
 
 COPY public."Users" (nickname, ip_v4, user_id) FROM stdin;
-test	127.0.0.1	1
-test2	127.0.0.2	2
 \.
+
+
+--
+-- Name: UserInfo_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."UserInfo_user_id_seq"', 1, false);
+
+
+--
+-- Name: Users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Users_user_id_seq"', 2, true);
 
 
 --
@@ -102,7 +140,7 @@ CREATE INDEX fki_user_id_fk ON public."UserInfo" USING btree (user_id);
 --
 
 ALTER TABLE ONLY public."UserInfo"
-    ADD CONSTRAINT user_id_fk FOREIGN KEY (user_id) REFERENCES public."Users"(user_id) ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT user_id_fk FOREIGN KEY (user_id) REFERENCES public."Users"(user_id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
 
 
 --
