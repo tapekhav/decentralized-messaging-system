@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <iostream>
+#include <memory>
 
 #include <insert_number_arguments_exception.h>
 #include <date_structure_exception.h>
@@ -13,33 +14,32 @@ using str_type = const std::string&;
 
 static const std::map<std::string, std::function<void(str_type value)>> kChecksMap = 
 {
-    {"ip_v4", [](str_type value) { if (!ip_v4::isIpValid(value)) { throw IpStructureException(); }} },
-    {"birth_date", [](str_type value) { if (!date::isDateValid(value)) { throw DateStructureException(); }} },
     {"nickname", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException(); }}},
+    {"ip_v4", [](str_type value) { if (!ip_v4::isIpValid(value)) { throw IpStructureException(); }} },
     {"name", [](str_type value) { if (value.size() > consts::db::kMaxNameSize) { throw SizeException(); }}},
+    {"birth_date", [](str_type value) { if (!date::isDateValid(value)) { throw DateStructureException(); }} },
     {"additional_information", [](str_type value) { if (value.size() > 255) { throw SizeException(); }}}
 };
 
-static const std::map<std::size_t, std::string> kIndexMap = 
+static const std::array<std::string, 5> kIndexArray = 
 {
-    {0, "ip_v4"},
-    {1, "birth_date"},
-    {2, "nickname"},
-    {3, "name"},
-    {4, "additional_information"}
+    "nickname",
+    "ip_v4",
+    "name",
+    "birth_date",
+    "additional_information"
 };
 
 UsersDatabaseManager::UsersDatabaseManager(const std::string& uri)
 { 
     connectToDatabase(uri); 
-    setPK();
 }
 
 void UsersDatabaseManager::connectToDatabase(const std::string& uri)
 {
     try 
     {
-        _connection = pqxx::connection(uri);
+        _connection = std::make_unique<pqxx::connection>(uri);
     } 
     catch (const pqxx::broken_connection& error)
     {
@@ -51,7 +51,7 @@ void UsersDatabaseManager::disconnectFromDatabase()
 {
     try 
     {
-        _connection.close();
+        _connection->close();
     } 
     catch (const pqxx::broken_connection& error)
     {
@@ -63,7 +63,7 @@ void UsersDatabaseManager::executeModifyingRawQuery(const std::string& query)
 {
     try 
     {
-        pqxx::work txn(_connection);
+        pqxx::work txn(*_connection);
         txn.exec(query);
         txn.commit();
     }
@@ -71,12 +71,6 @@ void UsersDatabaseManager::executeModifyingRawQuery(const std::string& query)
     {
         std::cerr << "Error while executing modifying query: " << error.what() << '\n';
     }
-}
-
-
-void UsersDatabaseManager::addKey(std::string& query)
-{
-    query += std::to_string(_primary_key) + ",";
 }
 
 void UsersDatabaseManager::addString(std::string& query, const std::string& value)
@@ -96,7 +90,6 @@ void UsersDatabaseManager::insertQuery(mod_query_list&& args)
     {
         return;
     }
-    ++_primary_key;
 
     insertIntoUsersQuery(args);
     insertIntoUserInfoQuery(args);
@@ -106,7 +99,6 @@ void UsersDatabaseManager::finishInsertQuery(std::string& query,
                                              const mod_query_list& args,
                                              limits_type limits)
 {
-    addKey(query);
     for (std::size_t i = limits.first; i < limits.second; ++i)
     {
         addString(query, args[i]);
@@ -117,7 +109,7 @@ void UsersDatabaseManager::finishInsertQuery(std::string& query,
 void UsersDatabaseManager::insertIntoUsersQuery(const mod_query_list& args)
 {
     std::string insert_into_users("INSERT INTO public.\"Users\" \
-                                        (user_id, nickname, ip_v4) \
+                                        (nickname, ip_v4) \
                                       VALUES(");
     finishInsertQuery(
         insert_into_users, 
@@ -131,7 +123,7 @@ void UsersDatabaseManager::insertIntoUsersQuery(const mod_query_list& args)
 void UsersDatabaseManager::insertIntoUserInfoQuery(const mod_query_list& args)
 {
     std::string insert_into_user_info("INSERT INTO public.\"UserInfo\" \
-                                            (user_id, name, birth_date, additional_information) \
+                                            (name, birth_date, additional_information) \
                                           VALUES(");
     finishInsertQuery(
         insert_into_user_info, 
@@ -148,7 +140,7 @@ bool UsersDatabaseManager::checkArgs(const mod_query_list& args)
     {
         for (std::size_t i = 0; i < consts::db::kNumOfDataArgs; ++i)
         {
-            kChecksMap.at(kIndexMap.at(i))(args[i]);
+            kChecksMap.at(kIndexArray[i])(args[i]);
         }
     }
     catch (const BaseException& error)
@@ -167,7 +159,7 @@ auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
                                      INNER JOIN public.\"UserInfo\" USING(user_id) \
                                      WHERE user_id = " + std::to_string(user_id) + ";";
 
-    return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs)[0];
+    return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs + 1)[0];
 }
 
 auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, std::size_t num_of_columns) ->
@@ -175,16 +167,15 @@ auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, std::
 {
     try
     {
-        pqxx::nontransaction txn(_connection);
+        pqxx::nontransaction txn(*_connection);
 
         pqxx::result result = txn.exec(query);
-        txn.commit();
 
         std::vector<return_query_list> table;
         for (const auto& row : result)
         {
             return_query_list row_values;
-            for (std::size_t i = 0; i < num_of_columns; i++)
+           for (std::size_t i = 0; i < num_of_columns; i++)
             {
                 row.at(static_cast<int>(i)).to(row_values[i]);
             }
@@ -208,7 +199,7 @@ auto UsersDatabaseManager::selectAllQuery() -> std::vector<return_query_list>
                                     FROM public.\"Users\" \
                                     INNER JOIN public.\"UserInfo\" USING(user_id);";
 
-    return executeReturnRawQuery(select_all_query, consts::db::kNumOfAllColumns);
+    return executeReturnRawQuery(select_all_query, consts::db::kNumOfDataArgs + 1);
 }
 
 void UsersDatabaseManager::deleteUser(std::size_t user_id)
@@ -218,16 +209,10 @@ void UsersDatabaseManager::deleteUser(std::size_t user_id)
     executeModifyingRawQuery(delete_user_query);
 }
 
-void UsersDatabaseManager::setPK()
-{
-    std::string pk_query = "SELECT MAX(user_id) FROM public.\"Users\";";
-
-    auto result = executeReturnRawQuery(pk_query, 1);
-
-    _primary_key = std::stoi(result[0][0]);
-}
-
-void UsersDatabaseManager::updateQuery(std::size_t user_id, std::string&& column, std::string&& value)
+void UsersDatabaseManager::updateQuery(std::size_t user_id, 
+                                       std::string&& table, 
+                                       std::string&& column, 
+                                       std::string&& value)
 {
     try 
     {
@@ -238,11 +223,20 @@ void UsersDatabaseManager::updateQuery(std::size_t user_id, std::string&& column
         std::cerr << error.name() << ": " << error.what() << "\n";
     }
 
-    std::string update_query = "UPDATE public.\"Users\" \
+    std::string update_query = "UPDATE public.\""+ table + "\" \
                                 SET " + column + " = \'" + value + "\' \
-                                FROM public.\"UserInfo\" \
-                                WHERE public.\"Users\".user_id = public.\"UserInfo\".user_id \
-                                AND Users.user_id = " + std::to_string(user_id) + ";";
+                                WHERE public.\"" + table + "\".user_id = " + std::to_string(user_id) + ";";
 
     executeModifyingRawQuery(update_query);
+}
+
+auto UsersDatabaseManager::selectWhere(std::string&& column,
+                                       std::string&& value) -> std::vector<return_query_list>
+{
+    std::string select_query = "SELECT * \
+                                FROM public.\"Users\" \
+                                INNER JOIN public.\"UserInfo\" USING(user_id) \
+                                WHERE " + column + " = \'" + value + "\';";
+
+    return executeReturnRawQuery(select_query, consts::db::kNumOfDataArgs + 1);
 }

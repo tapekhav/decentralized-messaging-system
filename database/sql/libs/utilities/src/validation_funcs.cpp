@@ -1,4 +1,4 @@
-#include <validation_func.h>
+#include <validation_funcs.h>
 
 #include <consts.h>
 

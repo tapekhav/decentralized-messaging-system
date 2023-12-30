@@ -8,7 +8,7 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "./build")
+include(${CMAKE_CURRENT_BINARY_DIR}/conan_toolchain.cmake)
 
 find_package(ZeroMQ REQUIRED)
 find_package(gRPC REQUIRED)
@@ -40,9 +40,9 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 include_directories(
-    libs/core/include
-    libs/utilities/include
-    libs/utilities/exceptions/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/core/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/exceptions/include
     ${gRPC_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     ${libpqxx_INCLUDE_DIRS} 
@@ -58,10 +58,10 @@ add_executable(
 
 target_link_libraries(
     ${PROJECT_NAME} 
-    core
     utilities
+    core
     ${ZeroMQ_LIBRARIES}
     ${_GRPC_LIBRARIES}
     ${libpqxx_LIBRARIES}
-    ${PostgreSQL_LIBRARIES} 
+    ${PostgreSQL_LIBRARIES}
 )

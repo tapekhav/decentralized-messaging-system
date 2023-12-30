@@ -9,12 +9,16 @@ add_library(
     ${SOURCES}
 )
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 target_link_libraries(
     ${TARGET_NAME}
     PRIVATE
     utilities
+)
+
+target_include_directories(
+    ${TARGET_NAME}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utilities/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utilities/exceptions/include
 )
