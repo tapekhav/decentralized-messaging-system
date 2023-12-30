@@ -22,14 +22,12 @@ public:
     explicit UsersDatabaseManager(const std::string& uri);
 
     void executeModifyingRawQuery(const std::string& query);
+    
     void insertQuery(mod_query_list&& args);
-
-    void deleteUser(std::size_t user_id);
 
     auto selectAllQuery() -> std::vector<return_query_list>;
     auto selectUser(std::size_t user_id) -> return_query_list;
-    auto selectWhere(std::string&& column,
-                     std::string&& value) -> std::vector<return_query_list>;
+    auto selectWhere(std::string&& condition) -> std::vector<return_query_list>;
 
     auto executeReturnRawQuery(const std::string& query,
                                std::size_t num_of_columns) -> std::vector<return_query_list>;
@@ -39,10 +37,13 @@ public:
                      std::string&& column, 
                      std::string&& value);
 
+    void deleteUser(std::size_t user_id);
+    void deleteWhere(std::string&& condition);
+
     ~UsersDatabaseManager() { disconnectFromDatabase(); }
 
 private:
-    bool checkArgs(const mod_query_list& args);
+    auto checkArgs(const mod_query_list& args) -> bool;
     void insertIntoUsersQuery(const mod_query_list& args);
     void insertIntoUserInfoQuery(const mod_query_list& args);
 
@@ -56,5 +57,6 @@ private:
     void connectToDatabase(const std::string& uri);
     void disconnectFromDatabase();
 
+    std::mutex _mutex;
     std::unique_ptr<pqxx::connection> _connection;
 };

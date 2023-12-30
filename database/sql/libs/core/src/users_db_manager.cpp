@@ -3,6 +3,7 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <mutex>
 
 #include <insert_number_arguments_exception.h>
 #include <date_structure_exception.h>
@@ -37,6 +38,8 @@ UsersDatabaseManager::UsersDatabaseManager(const std::string& uri)
 
 void UsersDatabaseManager::connectToDatabase(const std::string& uri)
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     try 
     {
         _connection = std::make_unique<pqxx::connection>(uri);
@@ -49,6 +52,8 @@ void UsersDatabaseManager::connectToDatabase(const std::string& uri)
 
 void UsersDatabaseManager::disconnectFromDatabase()
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     try 
     {
         _connection->close();
@@ -61,6 +66,8 @@ void UsersDatabaseManager::disconnectFromDatabase()
 
 void UsersDatabaseManager::executeModifyingRawQuery(const std::string& query)
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     try 
     {
         pqxx::work txn(*_connection);
@@ -90,6 +97,7 @@ void UsersDatabaseManager::insertQuery(mod_query_list&& args)
     {
         return;
     }
+    std::unique_lock<std::mutex> lock(_mutex);
 
     insertIntoUsersQuery(args);
     insertIntoUserInfoQuery(args);
@@ -124,7 +132,7 @@ void UsersDatabaseManager::insertIntoUserInfoQuery(const mod_query_list& args)
 {
     std::string insert_into_user_info("INSERT INTO public.\"UserInfo\" \
                                             (name, birth_date, additional_information) \
-                                          VALUES(");
+                                       VALUES(");
     finishInsertQuery(
         insert_into_user_info, 
         args, 
@@ -165,6 +173,8 @@ auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
 auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, std::size_t num_of_columns) ->
     std::vector<return_query_list>
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     try
     {
         pqxx::nontransaction txn(*_connection);
@@ -221,6 +231,7 @@ void UsersDatabaseManager::updateQuery(std::size_t user_id,
     catch(const BaseException& error)
     {
         std::cerr << error.name() << ": " << error.what() << "\n";
+        return;
     }
 
     std::string update_query = "UPDATE public.\""+ table + "\" \
@@ -230,13 +241,22 @@ void UsersDatabaseManager::updateQuery(std::size_t user_id,
     executeModifyingRawQuery(update_query);
 }
 
-auto UsersDatabaseManager::selectWhere(std::string&& column,
-                                       std::string&& value) -> std::vector<return_query_list>
+auto UsersDatabaseManager::selectWhere(std::string&& condition) -> std::vector<return_query_list>
 {
     std::string select_query = "SELECT * \
                                 FROM public.\"Users\" \
                                 INNER JOIN public.\"UserInfo\" USING(user_id) \
-                                WHERE " + column + " = \'" + value + "\';";
+                                WHERE " + condition + ";";
 
     return executeReturnRawQuery(select_query, consts::db::kNumOfDataArgs + 1);
+}
+
+void UsersDatabaseManager::deleteWhere(std::string&& condition)
+{
+    std::string delete_query = "DELETE public.\"Users\" \
+                                     FROM public.\"Users\" \
+                                     INNER JOIN public.\"UserInfo\" ON USING(user_id) \
+                                     WHERE " + condition + ";";
+
+    executeModifyingRawQuery(delete_query);
 }
