@@ -34,6 +34,10 @@ build/
 *.out
 *.app
 
+# Indexies
+*.idx
+
 server/dump.rdb
 server/build
 .vscode
+.cache
