@@ -1,6 +1,6 @@
 set(TARGET_NAME core)
 
-file(GLOB HEADERS headers/*.h)
+file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)
 
 add_library(
