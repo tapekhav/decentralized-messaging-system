@@ -2,15 +2,24 @@
 #include <memory>
 #include <cstdint>
 #include <cstdlib>
+#include <cstddef>
+#include <optional>
 #include <iostream>
 
 #include <nlohmann/json.hpp>
 #include <hiredis/hiredis.h>
 
+#include <consts.h>
+#include <context_error.h>
+#include <nullptr_context_error.h>
+
+
 template<class KeyType = int32_t, class ValueType = std::string>
 class CacheManager
 {
 public:
+    using reply_ptr = std::unique_ptr<redisReply, decltype(&freeReplyObject)>;
+
     CacheManager(const std::string& ip_v4, int32_t port);
 
     void createValue(const std::pair<KeyType, ValueType>& key_value);
@@ -25,6 +34,7 @@ public:
 
 private:
     void checkContext();
+    auto doReply(const std::string& formatted_command) -> std::optional<reply_ptr>;    
     
     std::unique_ptr<redisContext, decltype(&redisFree)> _context;
 };
@@ -42,53 +52,42 @@ CacheManager<KeyType, ValueType>::CacheManager(const std::string& ip_v4, int32_t
 }
 
 template<class KeyType, class ValueType>
-void CacheManager<KeyType, ValueType>::checkContext() {
-    if (_context == nullptr || _context->err != 0)
+void CacheManager<KeyType, ValueType>::checkContext() 
+{
+    try
     {
-        std::cerr << "Connection error: " << _context->errstr << '\n';
+        if (_context == nullptr)
+        {
+            throw ContextNullptrError();
+        }
+
+        if (_context->err != 0)
+        {
+            throw ContextError(_context->errstr);
+        }
+    }
+    catch (const RedisBaseError& error)
+    {
+        std::cerr << error.name() << ": " 
+                  << error.what() << '\n';
         this->~CacheManager();
     }
 }
 
 template<class KeyType, class ValueType>
-void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, ValueType>& key_value) {
-    try 
-    {
-        nlohmann::json json_key = key_value.first;
-        nlohmann::json json_value = key_value.second;
+void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, ValueType>& key_value) 
+{
+    nlohmann::json json_key = key_value.first;
+    nlohmann::json json_value = key_value.second;
 
-        std::string formatted_command(
-                                "SET " + 
-                                std::string(json_key.dump()) + 
-                                " " + 
-                                std::string(json_value.dump())
-        );
-        std::unique_ptr<redisReply, decltype(&freeReplyObject)> reply(
-            static_cast<redisReply*>(
-                redisCommand(
-                    _context.get(),
-                    formatted_command.c_str()
-                )
-            ),
-            &freeReplyObject
-        );
-
-        if (reply == nullptr)
-        {
-            throw std::runtime_error("Error in Redis command: null reply");
-        }
-
-        if (reply->type == REDIS_REPLY_ERROR)
-        {
-            throw std::runtime_error("Error in Redis command: " + std::string(reply->str));
-        }
-    } 
-    catch (const std::exception& e)
-    {
-        std::cerr << "Exception in createValue: " << e.what() << std::endl;
-    }
+    std::string formatted_command(
+                            "SET " + 
+                            std::string(json_key.dump()) + 
+                            " " + 
+                            std::string(json_value.dump())
+    );
+    auto reply = doReply(formatted_command);
 }
-
 
 template<class KeyType, class ValueType>
 void CacheManager<KeyType, ValueType>::deleteByKey(const KeyType& key)
@@ -96,14 +95,7 @@ void CacheManager<KeyType, ValueType>::deleteByKey(const KeyType& key)
     nlohmann::json json_key = key;
 
     std::string formatted_command("DEL " + std::string(json_key.dump()));
-    std::unique_ptr<redisReply, decltype(&freeReplyObject)> reply(
-        static_cast<redisReply*>(
-            redisCommand(
-                _context.get(), 
-                formatted_command.c_str()
-            )),
-        &freeReplyObject
-    );
+    auto reply = doReply(formatted_command);
 }
 
 template<class KeyType, class ValueType>
@@ -118,14 +110,46 @@ auto CacheManager<KeyType, ValueType>::readValue(const KeyType& key) -> std::str
     nlohmann::json json_key = key;
 
     std::string formatted_command("GET " + std::string(json_key.dump()));
-    std::unique_ptr<redisReply, decltype(&freeReplyObject)> reply(
-        static_cast<redisReply*>(
-            redisCommand(
-                _context.get(), 
-                formatted_command.c_str()
-            )),
-        &freeReplyObject
-    );
+    auto reply = doReply(formatted_command);
     
-    return reply->type == REDIS_REPLY_STRING ? reply->str : std::string();
+    if (reply.has_value())
+    {
+        return reply->type == REDIS_REPLY_STRING ? reply->str : std::string();
+    }
+    return {};
+}
+
+template<class KeyType, class ValueType>
+auto CacheManager<KeyType, ValueType>::doReply(const std::string& formatted_command) 
+                                                            -> std::optional<reply_ptr>
+{
+    try 
+    {
+        reply_ptr reply(
+            static_cast<redisReply*>(
+                redisCommand(
+                    _context.get(), 
+                    formatted_command.c_str()
+                )),
+            &freeReplyObject
+        );
+
+        if (reply == nullptr)
+        {
+            throw ContextNullptrError();
+        }
+
+        if (reply->type == REDIS_REPLY_ERROR)
+        {
+            throw ContextError("error in command -- " + std::string(reply->str));
+        }
+
+        return reply;
+    }
+    catch (const RedisBaseError& error)
+    {
+        std::cerr << error.what() << ": " << error.what() << '\n';
+    }
+
+    return std::nullopt;
 }

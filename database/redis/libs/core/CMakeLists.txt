@@ -5,7 +5,7 @@ file(GLOB SOURCES src/*.cpp)
 
 add_library(
     ${TARGET_NAME}
-    ${HEDERS}
+    ${HEADERS}
     ${SOURCES}
 )
 
