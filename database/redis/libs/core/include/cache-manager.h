@@ -12,7 +12,6 @@ class CacheManager
 {
 public:
     CacheManager(const std::string& ip_v4, int32_t port);
-    void checkContext();
 
     void createValue(const std::pair<KeyType, ValueType>& key_value);
 
@@ -25,6 +24,8 @@ public:
     ~CacheManager() = default;
 
 private:
+    void checkContext();
+    
     std::unique_ptr<redisContext, decltype(&redisFree)> _context;
 };
 
@@ -50,26 +51,44 @@ void CacheManager<KeyType, ValueType>::checkContext() {
 }
 
 template<class KeyType, class ValueType>
-void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, ValueType>& key_value)
-{
-    nlohmann::json json_key = key_value.first;
-    nlohmann::json json_value = key_value.second;
+void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, ValueType>& key_value) {
+    try 
+    {
+        nlohmann::json json_key = key_value.first;
+        nlohmann::json json_value = key_value.second;
 
-    std::string formatted_command(
-                            "SET " +
-                            std::string(json_key.dump()) +
-                            " " + 
-                            std::string(json_value.dump())
-    );
-    std::unique_ptr<redisReply, decltype(&freeReplyObject)> reply(
-        static_cast<redisReply*>(
-            redisCommand(
-                _context.get(), 
-                formatted_command.c_str()
-            )),
-        &freeReplyObject
-    );
+        std::string formatted_command(
+                                "SET " + 
+                                std::string(json_key.dump()) + 
+                                " " + 
+                                std::string(json_value.dump())
+        );
+        std::unique_ptr<redisReply, decltype(&freeReplyObject)> reply(
+            static_cast<redisReply*>(
+                redisCommand(
+                    _context.get(),
+                    formatted_command.c_str()
+                )
+            ),
+            &freeReplyObject
+        );
+
+        if (reply == nullptr)
+        {
+            throw std::runtime_error("Error in Redis command: null reply");
+        }
+
+        if (reply->type == REDIS_REPLY_ERROR)
+        {
+            throw std::runtime_error("Error in Redis command: " + std::string(reply->str));
+        }
+    } 
+    catch (const std::exception& e)
+    {
+        std::cerr << "Exception in createValue: " << e.what() << std::endl;
+    }
 }
+
 
 template<class KeyType, class ValueType>
 void CacheManager<KeyType, ValueType>::deleteByKey(const KeyType& key)
