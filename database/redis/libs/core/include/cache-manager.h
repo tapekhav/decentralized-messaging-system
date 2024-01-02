@@ -100,7 +100,7 @@ auto CacheManager<KeyType, ValueType>::operator=(CacheManager<KeyType, ValueType
 
     if (this == &other)
     {
-        this->swap(other);
+        CacheManager<KeyType, ValueType>(other).swap(*this);
     }
 
     return *this;
