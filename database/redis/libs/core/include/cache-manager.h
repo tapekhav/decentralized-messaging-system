@@ -1,4 +1,5 @@
-#include <hiredis/read.h>
+#include <mutex>
+#include <ratio>
 #include <string>
 #include <memory>
 #include <cstdint>
@@ -6,6 +7,7 @@
 #include <cstddef>
 #include <optional>
 #include <iostream>
+#include <algorithm>
 
 #include <nlohmann/json.hpp>
 #include <hiredis/hiredis.h>
@@ -23,6 +25,12 @@ public:
 
     CacheManager(const std::string& ip_v4, int32_t port);
     CacheManager(const CacheManager<KeyType, ValueType>& other) = delete;
+    CacheManager(CacheManager<KeyType, ValueType>&& other) noexcept;
+
+    auto operator=(const CacheManager<KeyType, ValueType>& other) -> CacheManager& = delete;
+    auto operator=(CacheManager<KeyType, ValueType>&& other) noexcept -> CacheManager&; 
+
+    void swap(CacheManager<KeyType, ValueType>&& other);
 
     void createValue(const std::pair<KeyType, ValueType>& key_value);
 
@@ -53,19 +61,55 @@ private:
     void checkContext();
     auto doReply(const std::string& formatted_command) -> std::optional<reply_ptr>;    
     
+    mutable std::mutex _mutex;
     std::unique_ptr<redisContext, decltype(&redisFree)> _context;
 };
 
 template<class KeyType, class ValueType>
 CacheManager<KeyType, ValueType>::CacheManager(const std::string& ip_v4, int32_t port)
-                                               : _context(redisConnect(
-                                                    ip_v4.c_str(),
-                                                    port
-                                                ),
+                                               : _context(
+                                                 nullptr,
                                                  &redisFree
                                                 )
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+    
+    auto *tempContext = redisConnect(ip_v4.c_str(), port);
+    if (tempContext != nullptr)
+    {
+        _context.reset(tempContext);
+    }
+        
     checkContext();
+}
+
+template<class KeyType, class ValueType>
+CacheManager<KeyType, ValueType>::CacheManager(CacheManager<KeyType, ValueType>&& other) noexcept
+{
+    std::scoped_lock<std::mutex> lock(_mutex, other._mutex);
+
+    _context = other._context;
+    other._context.reset();
+}
+
+template<class KeyType, class ValueType>
+auto CacheManager<KeyType, ValueType>::operator=(CacheManager<KeyType, ValueType>&& other) 
+                                                 noexcept -> CacheManager&
+{    
+    std::scoped_lock lock_this(_mutex, other._mutex);
+
+    if (this == &other)
+    {
+        this->swap(other);
+    }
+
+    return *this;
+} 
+
+template<class KeyType, class ValueType>
+void CacheManager<KeyType, ValueType>::swap(CacheManager<KeyType, ValueType>&& other)
+{
+    std::swap(_context, other._context);
 }
 
 template<class KeyType, class ValueType>
@@ -136,6 +180,8 @@ void CacheManager<KeyType, ValueType>::checkContext()
 template<class KeyType, class ValueType>
 void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, ValueType>& key_value) 
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     nlohmann::json json_key = key_value.first;
     nlohmann::json json_value = key_value.second;
 
@@ -151,6 +197,8 @@ void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, Valu
 template<class KeyType, class ValueType>
 void CacheManager<KeyType, ValueType>::deleteByKey(const KeyType& key)
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     nlohmann::json json_key = key;
 
     std::string formatted_command("DEL " + std::string(json_key.dump()));
@@ -160,6 +208,8 @@ void CacheManager<KeyType, ValueType>::deleteByKey(const KeyType& key)
 template<class KeyType, class ValueType>
 void CacheManager<KeyType, ValueType>::clearCache()
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     std::string flushall_command("FLUSHALL");
     doReply(flushall_command);
 }
@@ -305,6 +355,8 @@ void CacheManager<KeyType, ValueType>::hsetValue(const KeyType& hash_key,
                                                  const std::string& field, 
                                                  const ValueType& value)
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     nlohmann::json json_key = hash_key;
     nlohmann::json json_value = value;
 
@@ -351,6 +403,8 @@ auto CacheManager<KeyType, ValueType>::hkeyExists(const KeyType& hash_key,
 template<class KeyType, class ValueType>
 void CacheManager<KeyType, ValueType>::hdeleteKey(const KeyType& hash_key, const std::string& field)
 {
+    std::unique_lock<std::mutex> lock(_mutex);
+
     nlohmann::json json_key = hash_key;
 
     std::string hdel_command("HDEL " + std::string(json_key.dump()) + " " + field);
