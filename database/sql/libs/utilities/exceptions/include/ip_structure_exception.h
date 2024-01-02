@@ -8,8 +8,14 @@ class IpStructureException final : public BaseException
 {
 public:
     IpStructureException() : BaseException(kIpError) {}
+    IpStructureException(const IpStructureException& other) = delete;
+    IpStructureException(IpStructureException&& other) = delete;
 
-    [[nodiscard]] const char* name() const noexcept final { return "IpStructureException"; }
+    auto operator=(const IpStructureException& other) -> IpStructureException& = delete;
+    auto operator=(IpStructureException&& other) -> IpStructureException& = delete;
+
+    [[nodiscard]] auto name() const noexcept -> const char* final
+                                                         { return "IpStructureException"; }
     
     ~IpStructureException() noexcept final = default;
 };

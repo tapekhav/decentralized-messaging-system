@@ -7,10 +7,15 @@ class BaseException : public std::exception
 {
 public:
     explicit BaseException(std::string msg = "Base exception") : _msg(std::move(msg)) {}
+    BaseException(const BaseException& other) = delete;
+    BaseException(BaseException&& other) = delete;
 
-    [[nodiscard]] virtual const char* name() const noexcept { return "BaseException"; } 
+    auto operator=(const BaseException& other) -> BaseException& = delete;
+    auto operator=(BaseException&& other) -> BaseException& = delete;
 
-    [[nodiscard]] const char* what() const noexcept final { return _msg.c_str(); }
+    [[nodiscard]] virtual auto name() const noexcept -> const char* { return "BaseException"; } 
+
+    [[nodiscard]] auto what() const noexcept -> const char* final { return _msg.c_str(); }
 
     ~BaseException() noexcept override = default;
 private:

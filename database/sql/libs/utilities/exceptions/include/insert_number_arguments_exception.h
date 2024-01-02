@@ -8,8 +8,14 @@ class InsertNumberException final : public BaseException
 {
 public:
     InsertNumberException() : BaseException(kNumberArgsError) {}
+    InsertNumberException(const InsertNumberException& other) = delete;
+    InsertNumberException(InsertNumberException&& other) = delete;
 
-    [[nodiscard]] const char* name() const noexcept final { return "InsertNumberException"; }
+    auto operator=(const InsertNumberException& other) -> InsertNumberException& = delete;
+    auto operator=(InsertNumberException&& other) -> InsertNumberException& = delete;
+
+    [[nodiscard]] auto name() const noexcept -> const char* final
+                                                         { return "InsertNumberException"; }
     
     ~InsertNumberException() noexcept final = default;
 };

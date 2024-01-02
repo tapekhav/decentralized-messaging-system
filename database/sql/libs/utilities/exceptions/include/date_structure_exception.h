@@ -8,8 +8,13 @@ class DateStructureException final : public BaseException
 {
 public:
     DateStructureException() : BaseException(kDateStructureError) {}
+    DateStructureException(const DateStructureException& other) = delete;
+    DateStructureException(DateStructureException&& other) = delete;
 
-    [[nodiscard]] const char* name() const noexcept final { return "DateStructureException"; }
+    auto operator=(const DateStructureException& other) -> DateStructureException& = delete;
+    auto operator=(DateStructureException&& other) -> DateStructureException& = delete;
+
+    [[nodiscard]] auto name() const noexcept -> const char* final { return "DateStructureException"; }
     
     ~DateStructureException() noexcept final = default;
 };

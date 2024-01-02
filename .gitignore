@@ -37,7 +37,10 @@ build/
 # Indexies
 *.idx
 
-server/dump.rdb
+# Dumps
+*.rdb
+*.aof
+
 server/build
 .vscode
 .cache

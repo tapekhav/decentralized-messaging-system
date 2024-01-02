@@ -20,6 +20,13 @@ class UsersDatabaseManager final
 {
 public:
     explicit UsersDatabaseManager(const std::string& uri);
+    UsersDatabaseManager(const UsersDatabaseManager& other) = delete;
+    UsersDatabaseManager(UsersDatabaseManager&& other) noexcept;
+
+    auto operator=(const UsersDatabaseManager& other) -> UsersDatabaseManager& = delete;
+    auto operator=(UsersDatabaseManager&& other) noexcept -> UsersDatabaseManager&;
+
+    void swap(UsersDatabaseManager&& other); 
 
     void executeModifyingRawQuery(const std::string& query);
     
@@ -57,6 +64,6 @@ private:
     void connectToDatabase(const std::string& uri);
     void disconnectFromDatabase();
 
-    std::mutex _mutex;
+    mutable std::mutex _mutex;
     std::unique_ptr<pqxx::connection> _connection;
 };

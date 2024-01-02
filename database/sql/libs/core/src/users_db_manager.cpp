@@ -1,6 +1,8 @@
+#include <array>
 #include <users_db_manager.h>
 
 #include <exception>
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -64,6 +66,30 @@ void UsersDatabaseManager::disconnectFromDatabase()
     }
 }
 
+UsersDatabaseManager::UsersDatabaseManager(UsersDatabaseManager&& other) noexcept
+{
+    std::scoped_lock<std::mutex> lock(_mutex, other._mutex);
+    
+    _connection = other._connection;
+    other._connection.reset();
+}
+
+auto UsersDatabaseManager::operator=(UsersDatabaseManager&& other) noexcept
+                                                             -> UsersDatabaseManager&
+{
+    if (this != &other)
+    {
+        UsersDatabaseManager(other).swap(*this);
+    }
+
+    return *this;
+}
+
+void UsersDatabaseManager::swap(UsersDatabaseManager&& other)
+{
+    std::swap(_connection, other._connection);
+}
+
 void UsersDatabaseManager::executeModifyingRawQuery(const std::string& query)
 {
     std::unique_lock<std::mutex> lock(_mutex);
@@ -97,7 +123,6 @@ void UsersDatabaseManager::insertQuery(mod_query_list&& args)
     {
         return;
     }
-    std::unique_lock<std::mutex> lock(_mutex);
 
     insertIntoUsersQuery(args);
     insertIntoUserInfoQuery(args);
@@ -107,6 +132,7 @@ void UsersDatabaseManager::finishInsertQuery(std::string& query,
                                              const mod_query_list& args,
                                              limits_type limits)
 {
+    std::unique_lock<std::mutex> lock(_mutex);
     for (std::size_t i = limits.first; i < limits.second; ++i)
     {
         addString(query, args[i]);
@@ -119,6 +145,7 @@ void UsersDatabaseManager::insertIntoUsersQuery(const mod_query_list& args)
     std::string insert_into_users("INSERT INTO public.\"Users\" \
                                         (nickname, ip_v4) \
                                       VALUES(");
+
     finishInsertQuery(
         insert_into_users, 
         args, 
@@ -173,8 +200,6 @@ auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
 auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, std::size_t num_of_columns) ->
     std::vector<return_query_list>
 {
-    std::unique_lock<std::mutex> lock(_mutex);
-
     try
     {
         pqxx::nontransaction txn(*_connection);
@@ -185,7 +210,7 @@ auto UsersDatabaseManager::executeReturnRawQuery(const std::string& query, std::
         for (const auto& row : result)
         {
             return_query_list row_values;
-           for (std::size_t i = 0; i < num_of_columns; i++)
+            for (std::size_t i = 0; i < num_of_columns; i++)
             {
                 row.at(static_cast<int>(i)).to(row_values[i]);
             }
