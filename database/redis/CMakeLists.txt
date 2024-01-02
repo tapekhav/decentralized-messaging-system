@@ -59,5 +59,5 @@ target_link_libraries(
     core
     ${ZeroMQ_LIBRARIES}
     ${_GRPC_LIBRARIES}
-    ${HIREDIS_LIBRARIES}
+    hiredis::hiredis
 )
