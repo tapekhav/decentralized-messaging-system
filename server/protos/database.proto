@@ -7,9 +7,13 @@ service IpDatabaseService {
 }
 
 message IpRequest {
-    string name = 1;
+    string nickname = 1;
 } 
 
 message DatabaseResponse {
-    string ip = 1;
+    uint32 user_id = 1;
+    string ip = 2;
+    string name = 3;
+    string birth_date = 4;
+    string additional_information = 5;
 }

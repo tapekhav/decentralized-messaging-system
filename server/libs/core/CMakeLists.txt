@@ -14,6 +14,7 @@ target_include_directories(
     ${TARGET_NAME}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ip_db_connector/include
 )
 
 target_link_libraries(
