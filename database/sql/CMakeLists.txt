@@ -39,7 +39,54 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
 endif()
 
+file(GLOB PROTO_FILES "protos/*.proto")
+set(SOURCE_PROTO_FILES ${PROTO_FILES})
+
+set(output_files "")
+get_target_property(grpc_cpp_plugin_location gRPC::grpc_cpp_plugin LOCATION)
+foreach(proto_file ${SOURCE_PROTO_FILES})
+    get_filename_component(output_file_name ${proto_file} NAME_WE)
+    list(APPEND output_files
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.h
+    )
+
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.cc
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.pb.h
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.cc
+            ${CMAKE_CURRENT_BINARY_DIR}/protos/${output_file_name}.grpc.pb.h
+        COMMAND
+            protoc
+            ARGS
+                --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/protos
+                -I${CMAKE_CURRENT_SOURCE_DIR}/protos
+                ${proto_file}
+        COMMAND
+            protoc
+            ARGS
+                --grpc_out=${CMAKE_CURRENT_BINARY_DIR}/protos
+                -I${CMAKE_CURRENT_SOURCE_DIR}/protos
+                --plugin=protoc-gen-grpc=${grpc_cpp_plugin_location}
+                ${proto_file}
+        DEPENDS
+            ${proto_file}
+    )
+endforeach()
+
+add_custom_target(proto_target ALL DEPENDS ${output_files})
 include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}/protos
+    ${gRPC_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/core/include
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/include
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/exceptions/include
@@ -61,6 +108,7 @@ target_link_libraries(
     utilities
     core
     ${ZeroMQ_LIBRARIES}
+    ${PROTOBUF_LIBRARIES}
     ${_GRPC_LIBRARIES}
     ${libpqxx_LIBRARIES}
     ${PostgreSQL_LIBRARIES}

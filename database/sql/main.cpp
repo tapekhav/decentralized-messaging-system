@@ -1,14 +1,17 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
-#include <users_db_manager.h>
 #include <iostream>
 #include <thread>
 
+#include <users_db_manager.h>
+
+UsersDatabaseManager* UsersDatabaseManager::_instance = nullptr;
+std::mutex UsersDatabaseManager::_mutex;
+
 int main()
 {
-    UsersDatabaseManager db_manager(consts::db::kUri);
-    testInsertQuery(db_manager, 5);
+    auto& db_manager = UsersDatabaseManager::getInstance(consts::db::kUri);
 
     //! db_manager.insertQuery({"test1", "127.0.0.1", "Test1", "2003-06-27", "ahah1"});
     //! db_manager.insertQuery({"test2", "127.0.0.2", "Test2", "2003-06-28", "ahah2"});

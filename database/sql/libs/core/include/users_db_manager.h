@@ -19,14 +19,7 @@ using limits_type = std::pair<std::size_t, std::size_t>;
 class UsersDatabaseManager final
 {
 public:
-    explicit UsersDatabaseManager(const std::string& uri);
-    UsersDatabaseManager(const UsersDatabaseManager& other) = delete;
-    UsersDatabaseManager(UsersDatabaseManager&& other) noexcept;
-
-    auto operator=(const UsersDatabaseManager& other) -> UsersDatabaseManager& = delete;
-    auto operator=(UsersDatabaseManager&& other) noexcept -> UsersDatabaseManager&;
-
-    void swap(UsersDatabaseManager&& other); 
+    static auto getInstance(const std::string& uri) -> UsersDatabaseManager&;
 
     void executeModifyingRawQuery(const std::string& query);
     
@@ -35,6 +28,7 @@ public:
     auto selectAllQuery() -> std::vector<return_query_list>;
     auto selectUser(std::size_t user_id) -> return_query_list;
     auto selectWhere(std::string&& condition) -> std::vector<return_query_list>;
+    auto selectUserByNickname(std::string&& name) -> return_query_list;
 
     auto executeReturnRawQuery(const std::string& query,
                                std::size_t num_of_columns) -> std::vector<return_query_list>;
@@ -49,7 +43,12 @@ public:
 
     ~UsersDatabaseManager() { disconnectFromDatabase(); }
 
+    UsersDatabaseManager(const UsersDatabaseManager&) = delete;
+    auto operator=(const UsersDatabaseManager&) -> UsersDatabaseManager& = delete;
+
 private:
+    explicit UsersDatabaseManager(const std::string& uri);
+
     auto checkArgs(const mod_query_list& args) -> bool;
     void insertIntoUsersQuery(const mod_query_list& args);
     void insertIntoUserInfoQuery(const mod_query_list& args);
@@ -64,6 +63,8 @@ private:
     void connectToDatabase(const std::string& uri);
     void disconnectFromDatabase();
 
-    mutable std::mutex _mutex;
+
+    static UsersDatabaseManager* _instance;
+    static std::mutex _mutex;
     std::unique_ptr<pqxx::connection> _connection;
 };

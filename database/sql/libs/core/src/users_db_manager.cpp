@@ -1,6 +1,6 @@
-#include <array>
 #include <users_db_manager.h>
 
+#include <array>
 #include <exception>
 #include <algorithm>
 #include <iostream>
@@ -33,6 +33,18 @@ static const std::array<std::string, 5> kIndexArray =
     "additional_information"
 };
 
+auto UsersDatabaseManager::getInstance(const std::string& uri) -> UsersDatabaseManager&
+{
+    std::unique_lock<std::mutex> lock(_mutex);
+    
+    if (_instance == nullptr)
+    {
+        _instance = new UsersDatabaseManager(uri);    
+    }
+
+    return *_instance;
+}
+
 UsersDatabaseManager::UsersDatabaseManager(const std::string& uri)
 { 
     connectToDatabase(uri); 
@@ -64,30 +76,8 @@ void UsersDatabaseManager::disconnectFromDatabase()
     {
         std::cerr << "Error while disconnecting: " << error.what() << '\n';
     }
-}
 
-UsersDatabaseManager::UsersDatabaseManager(UsersDatabaseManager&& other) noexcept
-{
-    std::scoped_lock<std::mutex> lock(_mutex, other._mutex);
-    
-    _connection = other._connection;
-    other._connection.reset();
-}
-
-auto UsersDatabaseManager::operator=(UsersDatabaseManager&& other) noexcept
-                                                             -> UsersDatabaseManager&
-{
-    if (this != &other)
-    {
-        UsersDatabaseManager(other).swap(*this);
-    }
-
-    return *this;
-}
-
-void UsersDatabaseManager::swap(UsersDatabaseManager&& other)
-{
-    std::swap(_connection, other._connection);
+    delete _instance;
 }
 
 void UsersDatabaseManager::executeModifyingRawQuery(const std::string& query)
@@ -193,6 +183,16 @@ auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
                                      FROM public.\"Users\" \
                                      INNER JOIN public.\"UserInfo\" USING(user_id) \
                                      WHERE user_id = " + std::to_string(user_id) + ";";
+
+    return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs + 1)[0];
+}
+
+auto UsersDatabaseManager::selectUserByNickname(std::string&& name) -> return_query_list
+{
+    std::string select_user_query = "SELECT * \
+                                     FROM public.\"Users\" \
+                                     INNER JOIN public.\"UserInfo\" USING(user_id) \
+                                     WHERE nickname = " + std::string("\'") + name + std::string("\'") + ";";
 
     return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs + 1)[0];
 }
