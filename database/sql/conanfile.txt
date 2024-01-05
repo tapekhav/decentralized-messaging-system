@@ -9,9 +9,3 @@ libpq/15.4
 [generators]
 CMakeToolchain
 CMakeDeps
-
-[options]
-
-[imports]
-lib, *.so* -> ./conan-imports/bin
-lib, *.a -> ./conan-imports/lib

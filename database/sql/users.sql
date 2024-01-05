@@ -16,6 +16,28 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: users; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE users WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE = 'en_US.UTF-8';
+
+
+ALTER DATABASE users OWNER TO postgres;
+
+\connect users
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -80,6 +102,9 @@ ALTER TABLE public."Users" ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY
 --
 
 COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM stdin;
+2003-06-01	1	Test4	ahah4
+2003-06-28	2	Test2	ahah2
+2003-06-29	3	Test3	ahah3
 \.
 
 
@@ -88,6 +113,9 @@ COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM 
 --
 
 COPY public."Users" (nickname, ip_v4, user_id) FROM stdin;
+test4	127.0.0.4	1
+test5	127.0.0.2	2
+test3	127.0.0.3	3
 \.
 
 
@@ -95,14 +123,14 @@ COPY public."Users" (nickname, ip_v4, user_id) FROM stdin;
 -- Name: UserInfo_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."UserInfo_user_id_seq"', 1, false);
+SELECT pg_catalog.setval('public."UserInfo_user_id_seq"', 3, true);
 
 
 --
 -- Name: Users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public."Users_user_id_seq"', 2, true);
+SELECT pg_catalog.setval('public."Users_user_id_seq"', 3, true);
 
 
 --

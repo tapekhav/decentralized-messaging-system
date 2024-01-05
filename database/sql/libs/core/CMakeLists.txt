@@ -13,6 +13,8 @@ target_link_libraries(
     ${TARGET_NAME}
     PRIVATE
     utilities
+    protobuf::protobuf
+    gRPC::grpc
 )
 
 target_include_directories(

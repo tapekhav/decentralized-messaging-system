@@ -1,4 +1,4 @@
-#include <users_db_manager.h>
+#include "../include/users_db_manager.h"
 
 #include <array>
 #include <exception>
@@ -33,13 +33,13 @@ static const std::array<std::string, 5> kIndexArray =
     "additional_information"
 };
 
-auto UsersDatabaseManager::getInstance(const std::string& uri) -> UsersDatabaseManager&
+auto UsersDatabaseManager::getInstance() -> UsersDatabaseManager&
 {
     std::unique_lock<std::mutex> lock(_mutex);
     
     if (_instance == nullptr)
     {
-        _instance = new UsersDatabaseManager(uri);    
+        _instance = new UsersDatabaseManager(consts::db::kUri);    
     }
 
     return *_instance;
@@ -52,8 +52,6 @@ UsersDatabaseManager::UsersDatabaseManager(const std::string& uri)
 
 void UsersDatabaseManager::connectToDatabase(const std::string& uri)
 {
-    std::unique_lock<std::mutex> lock(_mutex);
-
     try 
     {
         _connection = std::make_unique<pqxx::connection>(uri);
@@ -107,7 +105,7 @@ void UsersDatabaseManager::changeEnd(std::string& query)
     query += ");";
 }
 
-void UsersDatabaseManager::insertQuery(mod_query_list&& args) 
+void UsersDatabaseManager::insertQuery(const mod_query_list& args) 
 {
     if (!checkArgs(args)) 
     {
@@ -187,7 +185,7 @@ auto UsersDatabaseManager::selectUser(std::size_t user_id) -> return_query_list
     return executeReturnRawQuery(select_user_query, consts::db::kNumOfDataArgs + 1)[0];
 }
 
-auto UsersDatabaseManager::selectUserByNickname(std::string&& name) -> return_query_list
+auto UsersDatabaseManager::selectUserByNickname(const std::string& name) -> return_query_list
 {
     std::string select_user_query = "SELECT * \
                                      FROM public.\"Users\" \
@@ -245,9 +243,9 @@ void UsersDatabaseManager::deleteUser(std::size_t user_id)
 }
 
 void UsersDatabaseManager::updateQuery(std::size_t user_id, 
-                                       std::string&& table, 
-                                       std::string&& column, 
-                                       std::string&& value)
+                                       const std::string& table, 
+                                       const std::string& column, 
+                                       const std::string& value)
 {
     try 
     {
@@ -266,7 +264,7 @@ void UsersDatabaseManager::updateQuery(std::size_t user_id,
     executeModifyingRawQuery(update_query);
 }
 
-auto UsersDatabaseManager::selectWhere(std::string&& condition) -> std::vector<return_query_list>
+auto UsersDatabaseManager::selectWhere(const std::string& condition) -> std::vector<return_query_list>
 {
     std::string select_query = "SELECT * \
                                 FROM public.\"Users\" \
@@ -276,12 +274,12 @@ auto UsersDatabaseManager::selectWhere(std::string&& condition) -> std::vector<r
     return executeReturnRawQuery(select_query, consts::db::kNumOfDataArgs + 1);
 }
 
-void UsersDatabaseManager::deleteWhere(std::string&& condition)
+void UsersDatabaseManager::deleteWhere(const std::string& condition)
 {
     std::string delete_query = "DELETE public.\"Users\" \
-                                     FROM public.\"Users\" \
-                                     INNER JOIN public.\"UserInfo\" ON USING(user_id) \
-                                     WHERE " + condition + ";";
+                                FROM public.\"Users\" \
+                                INNER JOIN public.\"UserInfo\" ON USING(user_id) \
+                                WHERE " + condition + ";";
 
     executeModifyingRawQuery(delete_query);
 }

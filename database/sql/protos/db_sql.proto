@@ -1,19 +1,19 @@
 syntax = "proto3";
 
-package sql_db;
+package db_sql;
 
 service IpDatabaseService {
-    rpc getIp(IpRequest) returns (IpResponse) {};
+  rpc getIp(IpRequest) returns (IpResponse) {}
 }
 
 message IpRequest {
     string nickname = 1;
-} 
-
+}
+  
 message IpResponse {
-    uint32 user_id = 1;
+    int32 user_id = 1;
     string ip = 2;
-    string name = 3;
-    string birth_date = 4;
-    string addtitional_information = 5;
+    string birth_date = 3;
+    string name = 4;
+    string additional_information = 5;
 }
