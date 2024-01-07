@@ -1,6 +1,10 @@
-#include "../include/server.h"
+#include <server.h>
 
 #include <iostream>
+
+
+RunServer::RunServer(const std::string& ip_v4, std::size_t port) 
+               : _uri(ip_v4 + std::string(":") + std::to_string(port)) {}
 
 void RunServer::runDatabaseService()
 {

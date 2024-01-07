@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include("${CMAKE_CURRENT_BINARY_DIR}/conan_toolchain.cmake")
 
-find_package(ZeroMQ REQUIRED)
 find_package(gRPC REQUIRED)
 find_package(libpqxx REQUIRED)
 find_package(PostgreSQL REQUIRED)
@@ -94,6 +93,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/exceptions/include
     ${gRPC_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
+    ${RdKafka_INCLUDE_DIRS}
     ${libpqxx_INCLUDE_DIRS} 
     ${PostgreSQL_INCLUDE_DIRS}
 )
@@ -110,7 +110,6 @@ target_link_libraries(
     ${PROJECT_NAME} 
     utilities
     core
-    ${ZeroMQ_LIBRARIES}
     protobuf::protobuf
     gRPC::grpc++
     gRPC::grpc_plugin_support

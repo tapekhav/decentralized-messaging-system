@@ -1,4 +1,4 @@
-#include "../include/database_service.h"
+#include <database_service.h>
 
 grpc::Status IpDatabaseServiceImpl::getIp(grpc::ServerContext* context, 
                                           const db_sql::IpRequest* request,

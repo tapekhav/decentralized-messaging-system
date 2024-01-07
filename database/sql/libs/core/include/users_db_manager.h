@@ -10,7 +10,7 @@
 
 #include <pqxx/pqxx>
 
-#include "../../utilities/include/consts.h"
+#include <consts.h>
 
 
 using mod_query_list = std::array<std::string, consts::db::kNumOfDataArgs>;

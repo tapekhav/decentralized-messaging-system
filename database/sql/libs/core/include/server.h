@@ -3,16 +3,15 @@
 #include <cstddef>
 #include <string>
 
-#include "database_service.h"
+#include <database_service.h>
 
 class RunServer
 {
 public:
-    RunServer(const std::string& ip_v4, std::size_t port) 
-               : _uri(ip_v4 + std::string(":") + std::to_string(port)) {}
+    RunServer(const std::string& ip_v4, std::size_t port);
 
     void runDatabaseService();
 
-private:
+private:    
     std::string _uri;
 };
