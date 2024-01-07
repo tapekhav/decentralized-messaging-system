@@ -9,6 +9,14 @@ add_library(
     ${SOURCES}
 )
 
+target_link_libraries(
+    ${TARGET_NAME} 
+    PRIVATE
+    utilities
+    gRPC::grpc++
+    protobuf::protobuf
+)
+
 target_include_directories(
     ${TARGET_NAME}
     PRIVATE
