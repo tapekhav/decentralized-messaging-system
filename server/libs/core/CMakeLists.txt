@@ -14,7 +14,7 @@ target_include_directories(
     ${TARGET_NAME}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../clients/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../grpc_clients/include
 )
 
 target_link_libraries(

@@ -1,6 +1,7 @@
 [requires]
 grpc/1.54.3
 gtest/1.14.0
+amqp-cpp/4.3.26
 protobuf/3.21.12
 
 [generators]
