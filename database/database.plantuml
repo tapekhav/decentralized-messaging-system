@@ -21,6 +21,6 @@ ENTITY RedisUserCache {
   ip_v4 : varchar(15)
 }
 
-Users --- UserInfo
+Users <--> UserInfo
 
 @enduml
