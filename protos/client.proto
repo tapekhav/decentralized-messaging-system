@@ -1,0 +1,15 @@
+syntax="proto3";
+
+package client;
+
+import "google/protobuf/empty.proto";
+
+service ClientService {
+    rpc sendMessage(clientMessage) returns (google.protobuf.Empty) {}
+}
+  
+message clientMessage {
+    uint32 port = 1;
+    string sender = 2;
+    string content = 3;
+}
