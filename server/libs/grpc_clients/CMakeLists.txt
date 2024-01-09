@@ -1,4 +1,4 @@
-set(TARGET_NAME ip_db_connector)
+set(TARGET_NAME clients)
 
 file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)

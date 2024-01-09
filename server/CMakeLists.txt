@@ -10,7 +10,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "./build")
 
-find_package(ZeroMQ REQUIRED)
+find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
 
 include(CheckCXXCompilerFlag)
@@ -94,7 +94,9 @@ target_link_libraries(
     ${PROJECT_NAME} 
     ${ZeroMQ_LIBRARIES}
     core
-    ip_db_connector
     gRPC::grpc++
     gRPC::grpc++_reflection
+    protobuf::libprotobuf
+    protobuf::protobuf
+    protobuf::libprotoc
 )

@@ -14,11 +14,12 @@ target_include_directories(
     ${TARGET_NAME}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ip_db_connector/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../clients/include
 )
 
 target_link_libraries(
     ${TARGET_NAME}
     PUBLIC
+    clients
     gRPC::grpc++ 
 )
