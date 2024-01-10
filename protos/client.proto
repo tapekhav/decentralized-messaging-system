@@ -9,7 +9,7 @@ service ClientService {
 }
   
 message clientMessage {
-    uint32 port = 1;
-    string sender = 2;
-    string content = 3;
+    string ip_reciever = 1;
+    uint32 port_reciever = 2;
+    string message = 3;
 }
