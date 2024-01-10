@@ -41,6 +41,5 @@ build/
 *.rdb
 *.aof
 
-server/build
 .vscode
 .cache
