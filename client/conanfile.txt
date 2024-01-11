@@ -1,0 +1,9 @@
+[requires]
+grpc/1.54.3
+zeromq/4.3.5
+gtest/1.14.0
+protobuf/3.21.12
+
+[generators]
+CMakeToolchain 
+CMakeDeps
