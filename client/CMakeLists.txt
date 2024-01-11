@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
 project(DecentralizedMessagingClient)
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/../include.cmake")
+include("${CMAKE_CURRENT_BINARY_DIR}/conan_toolchain.cmake")
 
-find_package(ZeroMQ REQUIRED)
 find_package(gRPC REQUIRED)
+find_package(Protobuf REQUIRED)
+find_package(ZeroMQ REQUIRED)
+
+set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../protos")
+file(GLOB PROTO_FILES "../protos/*.proto")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../include.cmake")
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/core/include
