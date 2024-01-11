@@ -186,10 +186,10 @@ void CacheManager<KeyType, ValueType>::createValue(const std::pair<KeyType, Valu
     nlohmann::json json_value = key_value.second;
 
     std::string formatted_command(
-                            "SET " + 
-                            std::string(json_key.dump()) + 
-                            " " + 
-                            std::string(json_value.dump())
+            "SET " + 
+            std::string(json_key.dump()) + 
+            " " +
+            std::string(json_value.dump())
     );
     auto reply = doReply(formatted_command);
 }

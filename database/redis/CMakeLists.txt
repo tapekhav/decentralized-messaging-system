@@ -22,6 +22,7 @@ include_directories(
 )
 
 add_subdirectory("libs/")
+add_subdirectory("tests/")
 
 add_executable(
     ${PROJECT_NAME}
