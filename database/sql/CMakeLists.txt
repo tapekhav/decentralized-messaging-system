@@ -11,6 +11,8 @@ find_package(libpqxx REQUIRED)
 find_package(PostgreSQL REQUIRED)
 find_package(Protobuf REQUIRED)
 
+set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../protos")
+file(GLOB PROTO_FILES "../../protos/*.proto")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../include.cmake")
 
 include_directories(
