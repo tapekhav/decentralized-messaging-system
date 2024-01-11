@@ -34,13 +34,12 @@ build/
 *.out
 *.app
 
-# Indixes
+# Indexies
 *.idx
 
-# Dumps
+# Dumps 
 *.rdb
 *.aof
 
-server/dump.rdb
-server/build
+build
 .vscode
