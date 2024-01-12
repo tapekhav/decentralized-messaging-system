@@ -35,7 +35,7 @@ set(output_files "" CACHE INTERNAL "")
 get_target_property(grpc_cpp_plugin_location gRPC::grpc_cpp_plugin LOCATION)
 message(STATUS "grpc_cpp_plugin_location = ${grpc_cpp_plugin_location}")
 
-get_target_property(protoc_location protobuf::protoc LOCATION)
+set(protoc_location "/home/vladimir/.conan2/p/protod3b4d84d71378/p/bin/protoc")
 message(STATUS "\n\nprotoc_location = ${protoc_location}\n\n")
 
 foreach(proto_file ${SOURCE_PROTO_FILES})

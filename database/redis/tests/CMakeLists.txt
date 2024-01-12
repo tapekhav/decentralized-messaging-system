@@ -31,5 +31,7 @@ if (${GTest_FOUND})
         ${CMAKE_CURRENT_SOURCE_DIR}/../libs/core/include
     )
     enable_testing()
-    add_test(NAME ExampleTest COMMAND ${TARGET_NAME})
+
+    include(GoogleTest)
+    gtest_discover_tests(${TARGET_NAME})
 endif(${GTest_FOUND})
