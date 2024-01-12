@@ -288,7 +288,14 @@ auto CacheManager<KeyType, ValueType>::readValue(const KeyType& key) -> std::str
     
     if (reply.has_value() && reply->get() != nullptr)
     {
-        return reply->get()->type == REDIS_REPLY_STRING ? reply->get()->str : std::string();
+        if (reply->get()->type == REDIS_REPLY_STRING)
+        {
+            std::string result(reply->get()->str);
+            result.pop_back();
+            result.erase(0, 1);
+
+            return result;
+        }
     }
     return {};
 }
@@ -382,10 +389,14 @@ auto CacheManager<KeyType, ValueType>::hgetValue(const KeyType& hash_key,
 
     if (reply.has_value() && reply->get() != nullptr && reply->get()->type == REDIS_REPLY_STRING)
     {
-        return std::string(reply->get()->str);
+        std::string result(reply->get()->str);
+        result.pop_back();
+        result.erase(0, 1);
+
+        return result;
     }
 
-    return "";
+    return {};
 }
 
 template<class KeyType, class ValueType>
