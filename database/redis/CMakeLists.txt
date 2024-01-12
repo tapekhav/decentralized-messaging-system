@@ -34,6 +34,7 @@ target_link_libraries(
     ${PROJECT_NAME} 
     core
     protobuf::protobuf
+    protobuf::libprotoc
     gRPC::grpc++
     gRPC::grpc_plugin_support
     hiredis::hiredis
