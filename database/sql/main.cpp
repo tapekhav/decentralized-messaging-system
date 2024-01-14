@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-#include "libs/core/include/server.h"
+#include <server.h>
 
 UsersDatabaseManager* UsersDatabaseManager::_instance = nullptr;
 std::mutex UsersDatabaseManager::_mutex;

@@ -27,6 +27,7 @@ include_directories(
 )
 
 add_subdirectory("libs/")
+add_subdirectory("tests/")
 
 add_executable(
     ${PROJECT_NAME}
@@ -41,6 +42,9 @@ target_link_libraries(
     protobuf::protobuf
     gRPC::grpc++
     gRPC::grpc_plugin_support
-    ${libpqxx_LIBRARIES}
-    ${PostgreSQL_LIBRARIES}
+    PostgreSQL::PostgreSQL
+    libpq::pgport
+    libpq::pgcommon
+    libpq::pq
+    libpqxx::pqxx
 )
