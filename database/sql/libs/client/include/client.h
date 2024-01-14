@@ -1,15 +1,16 @@
 #pragma once
 
 #include <grpcpp/grpcpp.h>
+
 #include <db_sql.grpc.pb.h>
 
-class IpDatabaseServiceClient 
+class SqlDatabaseServiceClient 
 {
 public:
-    explicit IpDatabaseServiceClient(std::shared_ptr<grpc::Channel> channel)
-                        : _stub(db_sql::IpDatabaseService::NewStub(channel)) {}
+    explicit SqlDatabaseServiceClient(std::shared_ptr<grpc::Channel> channel)
+                        : _stub(db_sql::SqlDatabaseService::NewStub(channel)) {}
 
-    std::string getIp(const std::string& nickname);
+    std::string getUser(const std::string& nickname);
 private:
-    std::unique_ptr<db_sql::IpDatabaseService::Stub> _stub;
+    std::unique_ptr<db_sql::SqlDatabaseService::Stub> _stub;
 };

@@ -5,14 +5,25 @@
 
 #include <users_db_manager.h>
 
-class IpDatabaseServiceImpl final : public db_sql::IpDatabaseService::Service
+using grpc::Status;
+using grpc::ServerContext;
+using db_sql::UserRequest;
+using db_sql::UserResponse;
+using db_sql::NewUserRequest;
+using google::protobuf::Empty;
+
+class SqlDatabaseServiceImpl final : public db_sql::SqlDatabaseService::Service
 {
 public:
-    IpDatabaseServiceImpl() : _db_manager(UsersDatabaseManager::getInstance()) {}
+    SqlDatabaseServiceImpl() : _db_manager(UsersDatabaseManager::getInstance()) {}
 
-    grpc::Status getIp(grpc::ServerContext* context, 
-                       const db_sql::IpRequest* request,
-                       db_sql::IpResponse* response) final;
+    Status getUser(ServerContext* context, 
+                   const UserRequest* request,
+                   UserResponse* response) final;
+
+    Status setUser(ServerContext* context, 
+                   const NewUserRequest* request,
+                   Empty* response) final;
 private:
     UsersDatabaseManager& _db_manager;
 };

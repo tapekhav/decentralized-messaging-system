@@ -1,7 +1,7 @@
 set(TARGET_NAME client)
 
-file(GLOB PROTO_H "${CMAKE_CURRENT_SOURCE_DIR}/../../build/protos/*.h")
-file(GLOB PROTO_S "${CMAKE_CURRENT_SOURCE_DIR}/../../build/protos/*.cc")
+file(GLOB PROTO_H "${CMAKE_CURRENT_SOURCE_DIR}/../../build/*.h")
+file(GLOB PROTO_S "${CMAKE_CURRENT_SOURCE_DIR}/../../build/*.cc")
 
 file(GLOB CLIENT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp") 
 
@@ -26,7 +26,7 @@ target_link_libraries(
 target_include_directories(
     ${TARGET_NAME}
     PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/../../protos
+    ${CMAKE_CURRENT_BINARY_DIR}/../../
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../utilities/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../utilities/exceptions/include

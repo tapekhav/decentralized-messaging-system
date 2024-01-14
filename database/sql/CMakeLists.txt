@@ -16,7 +16,7 @@ file(GLOB PROTO_FILES "../../protos/*.proto")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../include.cmake")
 
 include_directories(
-    ${CMAKE_CURRENT_BINARY_DIR}/protos
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/core/include
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/include
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/utilities/exceptions/include
