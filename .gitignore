@@ -34,7 +34,7 @@
 # Indexies
 *.idx
 
-# Dumps 
+# Dumps
 *.rdb
 *.aof
 

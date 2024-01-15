@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package db_sql;
+
+service SqlDatabaseService {
+  rpc getUser(UserRequest) returns (UserResponse) {}
+  rpc setUser(NewUserRequest) returns (google.protobuf.Empty) {}
+}
+
+message UserRequest {
+    string nickname = 1;
+}
+  
+message UserResponse {
+  int32 user_id = 1;
+  string ip = 2;
+  string birth_date = 3;
+  string name = 4;
+  string additional_information = 5;
+}
+
+message NewUserRequest {
+  string nickname = 1;
+  string ip = 2;
+  string birth_date = 3;
+  string name = 4;
+  string additional_information = 5;
+}
