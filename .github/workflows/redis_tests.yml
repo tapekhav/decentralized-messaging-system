@@ -45,7 +45,7 @@ jobs:
     
     - name: Run conan files with Custom Profile
       working-directory: ${{ github.workspace }}/database/redis/configs/conan
-      run: CONAN_PROFILE_PATH=$HOME/.conan/profiles/custom_profile ./run
+      run: conan install .. --profile=$HOME/.conan/profiles/custom_profile
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/database/redis/build
