@@ -14,14 +14,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: "redis:latest"
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 3
+
     steps:
     - uses: actions/checkout@v3
-
-    - name: Run Redis server
-      working-directory: ${{github.workspace}}/database/redis
-      run:
-        sudo chmod +x run_server.sh 
-        ./run_server.sh
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/database/redis/build/tests ${{github.workspace}}/database/redis/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
