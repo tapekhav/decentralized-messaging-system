@@ -29,7 +29,7 @@ jobs:
       run: mkdir build
     
     - name: Add rules for run file
-      working-directory: ${{github.workspace}}/database/redis/configs
+      working-directory: ${{github.workspace}}/database/redis/configs/conan
       run: sudo chmod +x run
   
     - name: Run conan files
