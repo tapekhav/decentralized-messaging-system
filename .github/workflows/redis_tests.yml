@@ -28,9 +28,12 @@ jobs:
       run: |
         sudo apt-get install -y python3-pip
         pip3 install conan
-
-    - name: Create Default Profile
-      run: conan profile new default --detect
+    
+    - name: Create and Copy Custom Conan Profile
+      run: |
+        echo "[settings]\narch=x86_64\nbuild_type=Release\ncompiler=gcc\ncompiler.cppstd=gnu17\ncompiler.libcxx=libstdc++11\ncompiler.version=11\nos=Linux" > ${{ github.workspace }}/custom_profile
+        mkdir -p $HOME/.conan/profiles
+        cp ${{ github.workspace }}/custom_profile $HOME/.conan/profiles/
 
     - name: Make build directory
       working-directory: ${{github.workspace}}/database/redis
@@ -39,10 +42,10 @@ jobs:
     - name: Add rules for run file
       working-directory: ${{github.workspace}}/database/redis/configs/conan
       run: sudo chmod +x run
-  
-    - name: Run conan files
-      working-directory: ${{github.workspace}}/database/redis/configs/conan
-      run: ./run
+    
+    - name: Run conan files with Custom Profile
+      working-directory: ${{ github.workspace }}/database/redis/configs/conan
+      run: CONAN_PROFILE_PATH=$HOME/.conan/profiles/custom_profile ./run
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/database/redis/build
