@@ -1,10 +1,11 @@
-name: Testing redis
+name: Testing_redis
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
@@ -17,17 +18,17 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Run Redis server
-      working-directory: ./database/redis
+      working-directory: ${{github.workspace}}/database/redis
       run:
         sudo chmod +x run_server.sh 
         ./run_server.sh
 
     - name: Configure CMake
-      run: cmake -B ./database/redis/build/tests ./database/redis/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ${{github.workspace}}/database/redis/build/tests ${{github.workspace}}/database/redis/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      run: cmake --build ./database/redis/build/tests --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/database/redis/build/tests --config ${{env.BUILD_TYPE}}
 
     - name: Test
-      working-directory: ./database/redis/build/tests
+      working-directory: ${{github.workspace}}/database/redis/build/tests
       run: ctest -C ${{env.BUILD_TYPE}}
