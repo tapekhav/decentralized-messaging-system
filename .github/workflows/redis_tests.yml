@@ -28,6 +28,12 @@ jobs:
       working-directory: ${{github.workspace}}/database/redis
       run: mkdir build
 
+    - name: Run conan files
+      working-directory: ${{github.workspace}}/database/redis/configs
+      run: 
+        sudo chmod +x run
+        ./run
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}/database/redis/build
       run: cmake .. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
