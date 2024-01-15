@@ -33,13 +33,13 @@ static const std::array<std::string, 5> kIndexArray =
     "additional_information"
 };
 
-auto UsersDatabaseManager::getInstance() -> UsersDatabaseManager&
+auto UsersDatabaseManager::getInstance(const std::string& uri) -> UsersDatabaseManager&
 {
     std::unique_lock<std::mutex> lock(_mutex);
     
     if (_instance == nullptr)
     {
-        _instance = new UsersDatabaseManager(consts::db::kUri);    
+        _instance = new UsersDatabaseManager(uri);    
     }
 
     return *_instance;

@@ -17,10 +17,10 @@ using mod_query_list = std::array<std::string, consts::db::kNumOfDataArgs>;
 using return_query_list = std::array<std::string, consts::db::kNumOfAllColumns>;
 using limits_type = std::pair<std::size_t, std::size_t>;
 
-class UsersDatabaseManager final
+class UsersDatabaseManager
 {
 public:
-    static auto getInstance() -> UsersDatabaseManager&;
+    static auto getInstance(const std::string& uri) -> UsersDatabaseManager&;
 
     void executeModifyingRawQuery(const std::string& query);
     

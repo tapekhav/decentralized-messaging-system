@@ -15,7 +15,7 @@ using google::protobuf::Empty;
 class SqlDatabaseServiceImpl final : public db_sql::SqlDatabaseService::Service
 {
 public:
-    SqlDatabaseServiceImpl() : _db_manager(UsersDatabaseManager::getInstance()) {}
+    SqlDatabaseServiceImpl() : _db_manager(UsersDatabaseManager::getInstance(consts::db::kUri)) {}
 
     Status getUser(ServerContext* context, 
                    const UserRequest* request,

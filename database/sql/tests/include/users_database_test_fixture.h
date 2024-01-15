@@ -40,7 +40,7 @@ private:
 
     void executeMigrations(const std::vector<std::string>& migration_files)
     {
-        UsersDatabaseManager& manager(UsersDatabaseManager::getInstance());
+        UsersDatabaseManager& manager(UsersDatabaseManager::getInstance(consts::db::kUri));
         for (const auto& migration_file : migration_files)
         {
             std::ifstream file(kMigrationPath + migration_file);
