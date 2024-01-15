@@ -51,11 +51,10 @@ jobs:
       run: sudo chmod +x run
 
     - name: Run conan files with Custom Profile
-      working-directory: ${{ github.workspace }}/database/redis/configs/conan
+      working-directory: ${{github.workspace}}/database/redis/configs/conan
       run: | 
         CONAN_PROFILE_PATH=$HOME/.conan2/profiles/default
         conan install . -of ../../build/ --build=missing -pr $CONAN_PROFILE_PATH
-        echo `ls $HOME/.conan2`
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/database/redis/build

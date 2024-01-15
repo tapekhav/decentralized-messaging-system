@@ -9,6 +9,7 @@ find_package(ZeroMQ REQUIRED)
 
 set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../protos")
 file(GLOB PROTO_FILES "../protos/*.proto")
+set(PROJ_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../include.cmake")
 
 include_directories(
