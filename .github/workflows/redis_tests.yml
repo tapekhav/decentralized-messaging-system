@@ -31,9 +31,16 @@ jobs:
     
     - name: Create and Copy Custom Conan Profile
       run: |
-        echo "[settings]\narch=x86_64\nbuild_type=Release\ncompiler=gcc\ncompiler.cppstd=gnu17\ncompiler.libcxx=libstdc++11\ncompiler.version=11\nos=Linux" > ${{ github.workspace }}/custom_profile
-        mkdir -p $HOME/.conan/profiles
-        cp ${{ github.workspace }}/custom_profile $HOME/.conan/profiles/
+        echo "[settings]
+              arch=x86_64
+              build_type=Release
+              compiler=gcc
+              compiler.cppstd=gnu17
+              compiler.libcxx=libstdc++11
+              compiler.version=11
+              os=Linux" > ${{ github.workspace }}/custom_profile
+        mkdir -p $HOME/.conan2/profiles
+        mv ${{github.workspace}}/custom_profile $HOME/.conan2/profiles/default
 
     - name: Make build directory
       working-directory: ${{github.workspace}}/database/redis
@@ -42,10 +49,12 @@ jobs:
     - name: Add rules for run file
       working-directory: ${{github.workspace}}/database/redis/configs/conan
       run: sudo chmod +x run
-    
+
     - name: Run conan files with Custom Profile
       working-directory: ${{ github.workspace }}/database/redis/configs/conan
-      run: conan install .. --profile=$HOME/.conan/profiles/custom_profile
+      run: | 
+        CONAN_PROFILE_PATH=$HOME/.conan2/profiles/default
+        conan install . -of ../../build/ --build=missing -pr $CONAN_PROFILE_PATH
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/database/redis/build
