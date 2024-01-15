@@ -27,12 +27,14 @@ jobs:
     - name: Make build directory
       working-directory: ${{github.workspace}}/database/redis
       run: mkdir build
-
-    - name: Run conan files
+    
+    - name: Add rules for run file
       working-directory: ${{github.workspace}}/database/redis/configs
-      run: 
-        sudo chmod +x run
-        ./run
+      run: sudo chmod +x run
+  
+    - name: Run conan files
+      working-directory: ${{github.workspace}}/database/redis/configs/conan
+      run: ./run
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/database/redis/build

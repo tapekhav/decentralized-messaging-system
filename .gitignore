@@ -41,7 +41,8 @@
 # Loggers
 *.log
 
-Testing
 build
+Testing
 .vscode
 CMakeUserPresets.json
+local-redis-stack.conf
