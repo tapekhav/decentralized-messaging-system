@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 CMakeUserPresets.json
 
+=======
+>>>>>>> 2e6e8e9573f225e5b373871dafb7928656dbd491
 # Prerequisites
 *.d
 
@@ -36,9 +39,15 @@ CMakeUserPresets.json
 # Indexies
 *.idx
 
-# Dumps 
+# Dumps
 *.rdb
 *.aof
 
+# Loggers
+*.log
+
 build
+Testing
 .vscode
+CMakeUserPresets.json
+local-redis-stack.conf

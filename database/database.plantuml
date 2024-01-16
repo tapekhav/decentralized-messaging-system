@@ -1,0 +1,26 @@
+@startuml
+!define ENTITY class 
+!define PRIMARY_KEY {field} 
+!define FOREIGN_KEY {field}
+
+ENTITY Users {
+  PRIMARY_KEY user_id : int(PK)
+  nickname : varchar(60)
+  ip_v4 : varchar(15)
+}
+
+ENTITY UserInfo {
+  PRIMARY_KEY user_id : int(PK, FK)
+  name : varchar(60)
+  birth_date : date
+  additional_information : varchar(255)
+}
+
+ENTITY RedisUserCache {
+  user_id : int
+  ip_v4 : varchar(15)
+}
+
+Users <--> UserInfo
+
+@enduml
