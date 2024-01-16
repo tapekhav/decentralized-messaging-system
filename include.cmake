@@ -35,6 +35,7 @@ set(output_files "" CACHE INTERNAL "")
 get_target_property(grpc_cpp_plugin_location gRPC::grpc_cpp_plugin LOCATION)
 message(STATUS "grpc_cpp_plugin_location = ${grpc_cpp_plugin_location}")
 
+get_target_property(protoc_location protobuf::protoc LOCATION)
 foreach(proto_file ${SOURCE_PROTO_FILES})
     get_filename_component(output_file_name ${proto_file} NAME_WE)
     list(APPEND output_files
@@ -51,13 +52,13 @@ foreach(proto_file ${SOURCE_PROTO_FILES})
             ${CMAKE_CURRENT_BINARY_DIR}/${output_file_name}.grpc.pb.cc
             ${CMAKE_CURRENT_BINARY_DIR}/${output_file_name}.grpc.pb.h
         COMMAND
-            protoc
+            ${protoc_location}
             ARGS
                 --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
                 -I${PROTO_DIR}
                 ${proto_file}
         COMMAND
-            protoc
+            ${protoc_location}
             ARGS
                 --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
                 -I${PROTO_DIR}
