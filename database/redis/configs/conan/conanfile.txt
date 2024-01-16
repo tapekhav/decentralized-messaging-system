@@ -1,0 +1,10 @@
+[requires]
+grpc/1.54.3
+gtest/1.14.0
+protobuf/3.21.12
+hiredis/1.2.0
+nlohmann_json/3.11.3
+
+[generators]
+CMakeToolchain
+CMakeDeps

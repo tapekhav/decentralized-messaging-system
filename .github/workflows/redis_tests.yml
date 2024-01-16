@@ -1,0 +1,69 @@
+name: Testing_redis
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: "redis:latest"
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 3
+    
+    steps:
+    - uses: actions/checkout@v3
+      
+    - name: Install Conan
+      run: |
+        sudo apt-get install -y python3-pip
+        pip3 install conan
+    
+    - name: Create and Copy Custom Conan Profile
+      run: |
+        echo "[settings]
+              arch=x86_64
+              build_type=Release
+              compiler=gcc
+              compiler.cppstd=gnu17
+              compiler.libcxx=libstdc++11
+              compiler.version=11
+              os=Linux" > ${{ github.workspace }}/custom_profile
+        mkdir -p $HOME/.conan2/profiles
+        mv ${{github.workspace}}/custom_profile $HOME/.conan2/profiles/default
+
+    - name: Make build directory
+      working-directory: ${{github.workspace}}/database/redis
+      run: mkdir build
+    
+    - name: Add rules for run file
+      working-directory: ${{github.workspace}}/database/redis/configs/conan
+      run: sudo chmod +x run
+
+    - name: Run conan files with Custom Profile
+      working-directory: ${{github.workspace}}/database/redis/configs/conan
+      run: | 
+        CONAN_PROFILE_PATH=$HOME/.conan2/profiles/default
+        conan install . -of ../../build/ --build=missing -pr $CONAN_PROFILE_PATH
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/database/redis/build
+      run: cmake .. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/database/redis/build
+      run: cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/database/redis/build/tests
+      run: ctest -C ${{env.BUILD_TYPE}}
