@@ -46,3 +46,6 @@ Testing
 .vscode
 CMakeUserPresets.json
 local-redis-stack.conf
+.idea
+cmake-build-debug
+cmake-build-release
