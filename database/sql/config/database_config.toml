@@ -1,0 +1,5 @@
+[database]
+dsn = "host=127.0.0.1 user=postgres dbname=users sslmode=disable password=1234 port=5433"
+
+[server]
+port = "8080"

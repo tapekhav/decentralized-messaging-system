@@ -10,12 +10,12 @@ service RedisService {
 }
 
 message UserRequest {
-    uint32 user_id = 1;
+    string nickname = 1;
     string ip_v4 = 2;
 }
 
 message IpRequest {
-    uint32 user_id = 1;
+    string nickname = 1;
 }
 
 message IpResponse {

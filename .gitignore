@@ -41,6 +41,9 @@
 # Loggers
 *.log
 
+# Protos
+*.pb.go
+
 build
 Testing
 .vscode

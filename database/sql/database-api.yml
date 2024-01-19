@@ -1,0 +1,191 @@
+openapi: 3.0.0
+info:
+  title: Database API
+  description: API для обращения к базе данных, содержащую информацию о пользователях
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production Server
+
+paths:
+  /users/getAll:
+    get:
+      summary: Получить список всех пользователей
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              example:
+                users:
+                  - id: 1
+                    nickname: mynickname1
+                    ipv4: 198.64.128.1
+                    Userinfo:
+                     - name: First Name
+                       birthDate: 27.06.2003
+                       additionalInformation: smth interesting 
+                  - id: 2
+                    nickname: mynickname2
+                    ipv4: 198.64.128.2
+                    UserInfo:
+                     - name: First Name
+                       birthDate: 10.12.2004
+                       additionalInformation: smth very interesting 
+  /users:
+    post:
+      summary: Добавить нового пользователя
+      description: Добавить нового пользователя со всей необходимой информацией
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '200':
+          description: Пользователь добавлен успешно
+          content:
+            application/json:
+              example:
+                message: User inserted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+        '500':
+          description: Ошибка при создании пользователя
+          content:
+            application/json:
+              example:
+                error: Failed to create user
+
+  /users/{nickname}:
+    parameters:
+      - name: nickname
+        in: path
+        required: true
+        description: Никнейм пользователя
+        schema:
+          type: string
+    get:
+      summary: Get user by nickname
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRequest'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: User not found
+    put:
+      summary: Обновляет пользователя по никнейму
+      parameters:
+        - name: nickname
+          in: path
+          required: true
+          description: Никнейм пользователя которого нужно обновить
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: Пользователь был обновлен
+          content:
+            application/json:
+              example:
+                message: User updated successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              example:
+                error: Bad Request
+        '500':
+          description: Ошибка при обновлении пользователя
+          content:
+            application/json:
+              example:
+                error: Failed to update user
+
+    delete:
+      summary: Удаление пользователя по никнейму
+      parameters:
+        - name: nickname
+          in: path
+          required: true
+          description: Никнейм пользователя, которого нужно удалить
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Пользователь был удален
+          content:
+            application/json:
+              example:
+                message: User deleted successfully
+        '500':
+          description: Ошибка при удалении пользователя
+          content:
+            application/json:
+              example:
+                error: Failed to delete user
+
+components:
+  schemas:
+    UserRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: Никнейм пользователя
+        ipv4:
+          type: string
+          description: IPv4 адрес пользователя
+        name:
+          type: string
+          description: Имя пользователя
+        birthDate:
+          type: string
+          format: date
+          description: День рождения пользователя(YYYY-MM-DD)
+        additionalInformation:
+          type: string
+          description: Дополнительная информация о пользователе
+      required:
+        - nickname
+        - ipv4
+        - name
+        - birthDate
+        - additionalInformation
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        ipv4:
+          type: string
+        name:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        additionalInformation:
+          type: string
+      required:
+        - ipv4
+        - name
+        - birthDate
+        - additionalInformation
