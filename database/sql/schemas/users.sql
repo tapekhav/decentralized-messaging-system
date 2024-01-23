@@ -102,9 +102,9 @@ ALTER TABLE public."Users" ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY
 --
 
 COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM stdin;
-2003-06-01	1	Test4	ahah4
-2003-06-28	2	Test2	ahah2
-2003-06-29	3	Test3	ahah3
+2003-06-01      1       Test4   ahah4
+2003-06-28      2       Test2   ahah2
+2003-06-29      3       Test3   ahah3
 \.
 
 
@@ -113,9 +113,9 @@ COPY public."UserInfo" (birth_date, user_id, name, additional_information) FROM 
 --
 
 COPY public."Users" (nickname, ip_v4, user_id) FROM stdin;
-test4	127.0.0.4	1
-test5	127.0.0.2	2
-test3	127.0.0.3	3
+test4   127.0.0.4       1
+test5   127.0.0.2       2
+test3   127.0.0.3       3
 \.
 
 
@@ -174,4 +174,3 @@ ALTER TABLE ONLY public."UserInfo"
 --
 -- PostgreSQL database dump complete
 --
-

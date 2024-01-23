@@ -2,11 +2,15 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+option go_package = "sql/../../protos";
+
 package db_sql;
 
 service SqlDatabaseService {
   rpc getUser(UserRequest) returns (UserResponse) {}
   rpc setUser(NewUserRequest) returns (google.protobuf.Empty) {}
+  rpc updateUser(NewUserRequest) returns (google.protobuf.Empty) {}
+  rpc deleteUser(UserRequest) returns (google.protobuf.Empty) {}
 }
 
 message UserRequest {

@@ -1,40 +1,25 @@
 cmake_minimum_required(VERSION 3.20)
-project(DecetralizedMessagingSystem)
+project(DecentralizedMessagingSystemServer)
 
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-set(BUILD_SHARED_LIBS OFF)
-set(CMAKE_EXE_LINKER_FLAGS "-static")
-set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+include("${CMAKE_CURRENT_BINARY_DIR}/conan_toolchain.cmake")
 
-find_package(ZeroMQ)
+find_package(nlohmann_json REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(gRPC REQUIRED)
+find_package(Protobuf REQUIRED)
 
-include(CheckCXXCompilerFlag)
+set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../protos")
+file(GLOB PROTO_FILES "../protos/*.proto")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../include.cmake")
 
-CHECK_CXX_COMPILER_FLAG ("-std=c++20" COMPILER_HAVE_CPP20)
-if (COMPILER_HAVE_CPP20)
-    set(CMAKE_CXX_STANDARD 20)
-endif(COMPILER_HAVE_CPP20)
-
-if (MSVC_VERSION GREATER_EQUAL "1900")
-    CHECK_CXX_COMPILER_FLAG("/std:c++20" _cpp_20)
-    if (_cpp_20)
-        message(STATUS "ADDING C++20")
-        add_compile_options("/std:c++20")
-    endif()
-endif()
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wconversion -Wformat -Wunused -Wshadow -Wuninitialized -Wsign-compare)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/W4)
-endif()
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
-endif()
-
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${gRPC_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${Boost_INCLUDE_DIRS}
+    ${NLOHMANN_JSON_INCLUDE_DIRS}
+)
 
 add_subdirectory("libs/")
 
@@ -42,9 +27,16 @@ add_executable(
     ${PROJECT_NAME}
     main.cpp
 )
+
 target_link_libraries(
     ${PROJECT_NAME} 
-    PRIVATE
+    ${ZeroMQ_LIBRARIES}
     core
-    libzmq-static
+    gRPC::grpc++
+    gRPC::grpc++_reflection
+    protobuf::libprotobuf
+    protobuf::protobuf
+    protobuf::libprotoc
+    Boost::boost
+    nlohmann_json::nlohmann_json
 )

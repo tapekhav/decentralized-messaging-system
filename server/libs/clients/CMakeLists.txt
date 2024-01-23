@@ -1,4 +1,4 @@
-set(TARGET_NAME core)
+set(TARGET_NAME clients)
 
 file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.cpp)
@@ -14,12 +14,10 @@ target_include_directories(
     ${TARGET_NAME}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../grpc_clients/include
 )
 
 target_link_libraries(
     ${TARGET_NAME}
     PUBLIC
-    clients
     gRPC::grpc++ 
 )
