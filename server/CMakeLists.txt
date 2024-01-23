@@ -3,6 +3,8 @@ project(DecentralizedMessagingSystemServer)
 
 include("${CMAKE_CURRENT_BINARY_DIR}/conan_toolchain.cmake")
 
+find_package(nlohmann_json REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
 find_package(gRPC REQUIRED)
 find_package(Protobuf REQUIRED)
 
@@ -15,6 +17,8 @@ include_directories(
     ${gRPC_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
+    ${Boost_INCLUDE_DIRS}
+    ${NLOHMANN_JSON_INCLUDE_DIRS}
 )
 
 add_subdirectory("libs/")
@@ -33,4 +37,6 @@ target_link_libraries(
     protobuf::libprotobuf
     protobuf::protobuf
     protobuf::libprotoc
+    Boost::boost
+    nlohmann_json::nlohmann_json
 )

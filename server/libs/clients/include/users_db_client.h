@@ -3,29 +3,37 @@
 #include <string>
 #include <memory>
 
-#include <grpcpp/grpcpp.h>
-#include <db_sql.grpc.pb.h>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
 
-using grpc::Status;
-using grpc::ClientContext;
-using google::protobuf::Empty;
+using request = boost::beast::http::request<boost::beast::http::string_body>;
+using responce = boost::beast::http::response<boost::beast::http::string_body>;
+
+using boost::beast::http::status;
 
 class UsersClient
 {
 public:
-    explicit UsersClient(std::shared_ptr<grpc::Channel> channel)
-                         : 
-                         _stub(db_sql::SqlDatabaseService::NewStub(channel)) {}
-
+    explicit UsersClient(
+            const std::string& link = "localhost",
+            const std::string& port = "8080"
+    );
     auto getUserIp(const std::string& nickname) -> std::string;
-
     auto setUser(
-        const std::string& nickname,
-        const std::string& ip,
-        const std::string& birth_date,
-        const std::string& name,
-        const std::string& additional_information
-    ) -> Status;
+            const std::string& nickname,
+            const std::string& ip,
+            const std::string& birth_date,
+            const std::string& name,
+            const std::string& additional_information
+    ) -> status;
+
 private:
-    std::unique_ptr<db_sql::SqlDatabaseService::Stub> _stub;
+    auto performRequest(request& req) -> responce;
+
+    boost::asio::io_context _io_context;
+    boost::asio::ip::tcp::resolver _resolver;
+    boost::beast::tcp_stream _stream;
+
+    std::string _user_agent;
+    std::string _content_type;
 };
