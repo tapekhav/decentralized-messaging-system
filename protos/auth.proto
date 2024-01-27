@@ -4,21 +4,22 @@ import "google/protobuf/empty.proto";
 
 package server;
 
+option go_package = "auth/../protos";
+
 service AuthService {
-    rpc signUp (LogInRequest) returns (LogInResponce) {}
-    rpc logIn (LogInRequest) returns (LogInResponce) {}
-    rpc logOut (LogOutRequest) returns (google.protobuf.Empty) {}
+    rpc SignUp (SignUpRequest) returns (google.protobuf.Empty) {}
+    rpc LogIn (LogInRequest) returns (google.protobuf.Empty) {}
 }
 
 message LogInRequest {
-    string login = 1;
+    string nickname = 1;
     string password = 2;
 }
-  
-message LogInResponce {
-    uint64 id = 1;
-}
-  
-message LogOutRequest {
-    uint64 id = 1;
+
+message SignUpRequest {
+    string nickname = 1;
+    string ip = 2;
+    string birth_date = 3;
+    string name = 4;
+    string additional_information = 5;
 }
