@@ -6,29 +6,9 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"sql/internal/models"
 )
-
-type User struct {
-	UserID   uint     `gorm:"primaryKey;autoIncrement;not null"`
-	Nickname string   `gorm:"column:nickname;uniqueIndex;not null;type:varchar(60)"`
-	IPv4     string   `gorm:"column:ip_v4;type:varchar(15)"`
-	UserInfo UserInfo `gorm:"foreignKey:UserID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-}
-
-type UserInfo struct {
-	UserID                uint      `gorm:"primaryKey;uniqueIndex;not null;autoIncrement"`
-	Name                  string    `gorm:"column:name;not null;type:varchar(60)"`
-	BirthDate             time.Time `gorm:"column:birth_date"`
-	AdditionalInformation string    `gorm:"column:additional_information;type:varchar(255)"`
-}
-
-func (User) TableName() string {
-	return "Users"
-}
-
-func (UserInfo) TableName() string {
-	return "UserInfo"
-}
 
 type UsersManager struct {
 	db *gorm.DB
@@ -40,20 +20,21 @@ func NewUsersManager(dsn string) (*UsersManager, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&User{}, &UserInfo{})
+	db.AutoMigrate(&models.User{}, &models.UserInfo{})
 
 	return &UsersManager{db: db}, nil
 }
 
-func (m *UsersManager) InsertUser(nickname, ipv4, name string,
+func (m *UsersManager) InsertUser(nickname, ipv4, password, name string,
 	birthDate time.Time,
 	additionalInformation string) error {
-	user := User{
+	user := models.User{
 		Nickname: nickname,
 		IPv4:     ipv4,
+		Password: password,
 	}
 
-	userInfo := UserInfo{
+	userInfo := models.UserInfo{
 		Name:                  name,
 		BirthDate:             birthDate,
 		AdditionalInformation: additionalInformation,
@@ -72,8 +53,8 @@ func (m *UsersManager) InsertUser(nickname, ipv4, name string,
 	return nil
 }
 
-func (m *UsersManager) SelectUser(nickname string) (User, error) {
-	var user User
+func (m *UsersManager) SelectUser(nickname string) (models.User, error) {
+	var user models.User
 	err := m.db.
 		Joins("JOIN \"UserInfo\" ON \"Users\".user_id = \"UserInfo\".user_id").
 		Preload("UserInfo").
@@ -87,10 +68,10 @@ func (m *UsersManager) DeleteUser(nickname string) error {
 	return m.db.Delete(nickname).Error
 }
 
-func (m *UsersManager) UpdateUserByNickname(nickname, ipv4, name string,
+func (m *UsersManager) UpdateUserByNickname(nickname, ipv4, password, name string,
 	birthDate time.Time,
 	additionalInformation string) error {
-	var user User
+	var user models.User
 
 	err := m.db.Preload("UserInfo").First(&user, nickname).Error
 	if err != nil {
@@ -98,6 +79,7 @@ func (m *UsersManager) UpdateUserByNickname(nickname, ipv4, name string,
 	}
 
 	user.IPv4 = ipv4
+	user.Password = password
 	user.UserInfo.Name = name
 	user.UserInfo.BirthDate = birthDate
 	user.UserInfo.AdditionalInformation = additionalInformation
@@ -105,8 +87,8 @@ func (m *UsersManager) UpdateUserByNickname(nickname, ipv4, name string,
 	return m.db.Save(&user).Error
 }
 
-func (m *UsersManager) SelectAllUsers() ([]User, error) {
-	var users []User
+func (m *UsersManager) SelectAllUsers() ([]models.User, error) {
+	var users []models.User
 
 	err := m.db.
 		Joins("JOIN \"UserInfo\" ON \"Users\".user_id = \"UserInfo\".user_id").
@@ -117,15 +99,15 @@ func (m *UsersManager) SelectAllUsers() ([]User, error) {
 }
 
 func (m *UsersManager) ModifyingRawQuery(query string,
-	values ...interface{}) error {
+										 values ...interface{}) error {
 	result := m.db.Exec(query, values...)
 
 	return result.Error
 }
 
 func (m *UsersManager) SelectRawSQLQuery(query string,
-	values ...interface{}) ([]User, error) {
-	var users []User
+										 values ...interface{}) ([]models.User, error) {
+	var users []models.User
 	result := m.db.Raw(query, values...).Scan(&users)
 
 	return users, result.Error

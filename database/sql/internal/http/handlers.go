@@ -39,6 +39,7 @@ func (h *Handlers) insertUser(c *gin.Context) {
 	var userInsertRequest struct {
 		Nickname 			  string 	`json:"nickname" binding:"required"`
 		IPv4 				  string 	`json:"ipv4" binding:"required"`
+		Password 			  string 	`json:"password" binding:"required"`
 		Name                  string    `json:"name" binding:"required"`
 		BirthDate             time.Time `json:"birthDate" binding:"required"`
 		AdditionalInformation string    `json:"additionalInformation" binding:"required"`
@@ -53,6 +54,7 @@ func (h *Handlers) insertUser(c *gin.Context) {
 	error := h.usersManager.InsertUser(
 		userInsertRequest.Nickname,
 		userInsertRequest.IPv4,
+		userInsertRequest.Password,
 		userInsertRequest.Name,
 		userInsertRequest.BirthDate,
 		userInsertRequest.AdditionalInformation,
@@ -95,6 +97,7 @@ func (h *Handlers) updateUser(c *gin.Context) {
 	var userUpdateRequest struct {
 		IPv4                  string    `json:"ipv4"`
 		Name                  string    `json:"name"`
+		Password			  string 	`json:"password"`
 		BirthDate             time.Time `json:"birthDate"`
 		AdditionalInformation string    `json:"additionalInformation"`
 	}
@@ -107,6 +110,7 @@ func (h *Handlers) updateUser(c *gin.Context) {
 	err := h.usersManager.UpdateUserByNickname(
 		nickname,
 		userUpdateRequest.IPv4,
+		userUpdateRequest.Password,
 		userUpdateRequest.Name,
 		userUpdateRequest.BirthDate,
 		userUpdateRequest.AdditionalInformation,

@@ -22,7 +22,7 @@ func TestHandlers_InsertUser(t *testing.T) {
 	h.Register(router)
 
 	recorder := httptest.NewRecorder()
-	payload := []byte(`{"nickname": "testuser", "ipv4": "192.168.1.1", "name": "Test User", "birthDate": "2003-06-27T12:00:00Z", "additionalInformation": "info"}`)
+	payload := []byte(`{"nickname": "testuser", "ipv4": "192.168.1.1", "password":1234, "name": "Test User", "birthDate": "2003-06-27T12:00:00Z", "additionalInformation": "info"}`)
 
 	request, err := http.NewRequest("POST", "/users/", bytes.NewBuffer(payload))
 	if err != nil {
