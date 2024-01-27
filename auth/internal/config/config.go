@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Port string `json:"PORT" env-default:50055`
+	Key  string `json:"KEY" env-default:example-key`
 }
 
 func MustLoad() Config {
