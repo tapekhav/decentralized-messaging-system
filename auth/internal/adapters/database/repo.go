@@ -15,17 +15,17 @@ import (
 type Database struct{}
 
 func (db *Database) RegisterUser(nickname, password, Ipv4 string,
-	birth_date time.Time,
+	birthDate time.Time,
 	name, additionalInformation string) error {
 	url := fmt.Sprintf("http://127.0.0.1:8080/users/%s", nickname)
-	userData := models.User{
-		Nickname:              nickname,
-		Password:              password,
-		Ipv4:                  Ipv4,
-		BirthDate:             birth_date,
-		Name:                  name,
-		AdditionalInformation: additionalInformation,
-	}
+	userData := models.NewUser(
+		nickname,
+		password,
+		Ipv4,
+		birthDate,
+		name,
+		additionalInformation,
+	)
 
 	jsonData, err := json.Marshal(userData)
 	if err != nil {
@@ -71,14 +71,13 @@ func (db *Database) AuthUser(nickname, password string) (models.User, error) {
 		additionalInfo, _ := db.getDataFromJson(info, "AdditionalInformation")
 		birthDate, _ 	  := jsonData["BirthDate"].(time.Time)
 
-		return models.User{
-			Nickname:              nickname,
-			Password:              pswd,
-			Ipv4:                  ipv4,
-			Name:                  name,
-			BirthDate:             birthDate,
-			AdditionalInformation: additionalInfo,
-		}, nil
+		return models.NewUser(
+				nickname, 
+				pswd, 
+				ipv4, 
+				birthDate, 
+				name, 
+				additionalInfo), nil
 	}
 
 	return models.User{}, nil
