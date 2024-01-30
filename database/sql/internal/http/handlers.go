@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"sql/internal/adapters"
 
@@ -24,40 +23,22 @@ func NewHandlers(dsn string) (*Handlers, error) {
 	}, nil
 }
 
-func (h *Handlers) Register(r *gin.Engine) {
-	userGroup := r.Group("/users") 
-	{
-		userGroup.POST("/", h.insertUser)
-		userGroup.GET("/:nickname", h.getUser)
-		userGroup.GET("/getAll", h.getAllUsers)
-		userGroup.PUT("/:nickname", h.updateUser)
-		userGroup.DELETE("/:nickname", h.deleteUser)
-	}
-}
-
 func (h *Handlers) insertUser(c *gin.Context) {
-	var userInsertRequest struct {
-		Nickname 			  string 	`json:"nickname" binding:"required"`
-		IPv4 				  string 	`json:"ipv4" binding:"required"`
-		Password 			  string 	`json:"password" binding:"required"`
-		Name                  string    `json:"name" binding:"required"`
-		BirthDate             time.Time `json:"birthDate" binding:"required"`
-		AdditionalInformation string    `json:"additionalInformation" binding:"required"`
-	}
+	var insertRequest userInsertRequest
 
-	err := c.ShouldBindJSON(&userInsertRequest)
+	err := c.ShouldBindJSON(&insertRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	error := h.usersManager.InsertUser(
-		userInsertRequest.Nickname,
-		userInsertRequest.IPv4,
-		userInsertRequest.Password,
-		userInsertRequest.Name,
-		userInsertRequest.BirthDate,
-		userInsertRequest.AdditionalInformation,
+		insertRequest.Nickname,
+		insertRequest.IPv4,
+		insertRequest.Password,
+		insertRequest.Name,
+		insertRequest.BirthDate,
+		insertRequest.AdditionalInformation,
 	)
 	
 	if error != nil {
@@ -94,26 +75,20 @@ func (h *Handlers) getAllUsers(c *gin.Context) {
 func (h *Handlers) updateUser(c *gin.Context) {
 	nickname := c.Param("nickname")
 
-	var userUpdateRequest struct {
-		IPv4                  string    `json:"ipv4"`
-		Name                  string    `json:"name"`
-		Password			  string 	`json:"password"`
-		BirthDate             time.Time `json:"birthDate"`
-		AdditionalInformation string    `json:"additionalInformation"`
-	}
+	var updateRequest userUpdateRequest
 
-	if err := c.ShouldBindJSON(&userUpdateRequest); err != nil {
+	if err := c.ShouldBindJSON(&updateRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	err := h.usersManager.UpdateUserByNickname(
 		nickname,
-		userUpdateRequest.IPv4,
-		userUpdateRequest.Password,
-		userUpdateRequest.Name,
-		userUpdateRequest.BirthDate,
-		userUpdateRequest.AdditionalInformation,
+		updateRequest.IPv4,
+		updateRequest.Password,
+		updateRequest.Name,
+		updateRequest.BirthDate,
+		updateRequest.AdditionalInformation,
 	)
 
 	if err != nil {
