@@ -1,35 +1,32 @@
 version: '3.8'
 
 services:
-  server:
-    image: server:latest
+  database:
+    image: database:latest
     restart: on-failure
-    build: ./server
+    build: ./database/sql
 
     ports:
       - '8080:8080'
 
     volumes:
       - ./server/:/usr/server/
+
+    networks:
+      - main_network
+
+  nginx:
+    image: nginx:latest
+    build: ./database/sql/nginx
+    ports:
+      - '8080:80'
+      - '443:443'
+
+    networks:
+      - main_network
     
     depends_on:
-      - redis
-
-    networks:
-      - main_network
-
-  redis:
-    image: redis:latest
-    build: ./database/redis
-
-    ports: 
-      - '6379:6379'
-
-    volumes:
-      - ./server/:/usr/database/redis
-
-    networks:
-      - main_network
+      - database
 
 networks:
   main_network:
