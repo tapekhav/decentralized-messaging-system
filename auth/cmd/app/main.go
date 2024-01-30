@@ -1,7 +1,7 @@
 package main
 
 import (
-	"auth/internal/grpc/server"
+	"auth/internal/grpc"
 )
 
 

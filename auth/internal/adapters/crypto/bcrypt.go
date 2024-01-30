@@ -21,13 +21,13 @@ func (h BCryptHasher) HashFunction(hashingString string) (string, error) {
 	return string(hash), nil
 }
 
-func (h BCryptHasher) CompareString(hash, originalString string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(originalString))
+func (h BCryptHasher) CompareString(originalString, hashString string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(hashString), []byte(originalString))
 	
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return fmt.Errorf("Original string: %s and hash: %s mismatch", 
 						  originalString, 
-						  hash)
+						  hashString)
 	} else if err != nil {
 		return err
 	}

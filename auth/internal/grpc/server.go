@@ -6,7 +6,6 @@ import (
 
 	"auth/internal/config"
 	pb "auth/pb"
-	"auth/internal/grpc"
 
 	"google.golang.org/grpc"
 )
@@ -14,7 +13,7 @@ import (
 func RunServer() {
 	port := config.MustLoad().Port
 
-	authService := &handlers.AuthServiceServer{}
+	authService := &AuthServiceServer{}
 	server := grpc.NewServer()
 
 	pb.RegisterAuthServiceServer(server, authService)

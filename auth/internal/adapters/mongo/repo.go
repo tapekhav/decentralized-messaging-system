@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"log"
+	"time"
 	"context"
 
 	"auth/internal/models"
@@ -17,8 +19,8 @@ type Repo struct {
 
 func (r *Repo) GetTokenByNickname(ctx context.Context, 
 								  nickname string) (models.RefreshToken, error) {
-	res := r.tokens.FindOne(ctx, bson.M{"nickname": nickname})
-
+	res := r.tokens.FindOne(ctx, bson.M{"_id": nickname})
+	
 	if err := res.Err(); err != nil {
 		return models.RefreshToken{}, err
 	}
@@ -32,10 +34,8 @@ func (r *Repo) GetTokenByNickname(ctx context.Context,
 } 
 
 func (r *Repo) GenerateToken(ctx context.Context, 
-						     nickname string, 
 							 token models.RefreshToken) (error) {
 	updateFields := bson.D{
-		primitive.E{Key: "nickname", Value: nickname},
 		primitive.E{Key: "hash", Value: token.Hash},
 		primitive.E{Key: "expires", Value: primitive.NewDateTimeFromTime(token.Expires)},
 	}
@@ -57,6 +57,23 @@ func (r *Repo) GenerateToken(ctx context.Context,
 	return nil
 }
 
-func New(db *mongo.Database) Repo {
+func New(connectionString string) Repo {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clientOptions := options.Client().ApplyURI(connectionString)
+
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		log.Fatal(err)	
+	}
+
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+		
+	db := client.Database("nicknameTokensDB")
+	
 	return Repo{tokens: db.Collection("tokens")}
 }
