@@ -34,7 +34,7 @@ func (r *Repo) GetTokenByNickname(ctx context.Context,
 } 
 
 func (r *Repo) GenerateToken(ctx context.Context, 
-							 token models.RefreshToken) (error) {
+							 token models.RefreshToken) error {
 	updateFields := bson.D{
 		primitive.E{Key: "hash", Value: token.Hash},
 		primitive.E{Key: "expires", Value: primitive.NewDateTimeFromTime(token.Expires)},

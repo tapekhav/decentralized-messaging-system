@@ -21,7 +21,7 @@ func (h BCryptHasher) HashFunction(hashingString string) (string, error) {
 	return string(hash), nil
 }
 
-func (h BCryptHasher) CompareString(originalString, hashString string) error {
+func (h BCryptHasher) CompareStrings(originalString, hashString string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashString), []byte(originalString))
 	
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
