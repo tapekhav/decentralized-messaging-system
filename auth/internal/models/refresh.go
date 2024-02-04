@@ -10,7 +10,11 @@ type RefreshToken struct {
 	Expires  time.Time
 }
 
-func NewRefreshToken(nickname, hash string, expires time.Time) RefreshToken {
+func NewRefreshToken(
+	nickname string, 
+	hash 	 string, 
+	expires  time.Time,
+) RefreshToken {
 	return RefreshToken{
 		Nickname: nickname,
 		Hash: 	  hash,

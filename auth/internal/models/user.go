@@ -14,22 +14,22 @@ type User struct {
 }
 
 type UserAuthRequest struct {
-	Nickname string `json:"nickname"`
-	Password string `json:"password"`
+	Nickname string `json:"nickname" bson:"_id"`
+	Password string `json:"password" bson:"password"`
 }
 
-func NewUser(nickname string, 
-			 password string, 
-			 ipv4 string, 
-			 birthDate time.Time, 
-			 name string, 
-			 additionalInfo string) User {
+func NewUser(nickname string,
+	password string,
+	ipv4 string,
+	birthDate time.Time,
+	name string,
+	additionalInfo string) User {
 	return User{
-		Nickname: nickname,
-		Password: password,
-		Ipv4: ipv4,
-		BirthDate: birthDate,
-		Name: name,
+		Nickname:              nickname,
+		Password:              password,
+		Ipv4:                  ipv4,
+		BirthDate:             birthDate,
+		Name:                  name,
 		AdditionalInformation: additionalInfo,
 	}
 }
