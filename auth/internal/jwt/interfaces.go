@@ -13,6 +13,8 @@ type JWTRepo interface {
 		nickname string,
 	) (models.RefreshToken, error)
 	GenerateToken(ctx context.Context, token models.RefreshToken) error
+	FindUser(ctx context.Context, user models.UserAuthRequest) error
+	CreateUser(ctx context.Context, user models.UserAuthRequest) error
 }
 
 type UsersRepo interface {

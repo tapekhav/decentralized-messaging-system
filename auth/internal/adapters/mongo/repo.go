@@ -38,7 +38,7 @@ func (r *Repo) GetTokenByNickname(
 	return models.NewRefreshToken(nickname, token.Hash, token.Expires.Time()), nil
 }
 
-func (r *Repo) FindUsers(
+func (r *Repo) FindUser(
 	ctx context.Context,
 	user models.UserAuthRequest,
 ) error {
@@ -60,8 +60,10 @@ func (r *Repo) FindUsers(
 	return nil
 }
 
-func (r *Repo) GenerateToken(ctx context.Context,
-	token models.RefreshToken) error {
+func (r *Repo) GenerateToken(
+	ctx context.Context,
+	token models.RefreshToken,
+) error {
 	updateFields := bson.D{
 		primitive.E{Key: "hash", Value: token.Hash},
 		primitive.E{Key: "expires", Value: primitive.NewDateTimeFromTime(token.Expires)},
@@ -100,7 +102,12 @@ func (r *Repo) CreateUser(
 	}
 
 	options := options.Update().SetUpsert(true)
-	_, err := r.users.UpdateByID(ctx, user.Nickname, updateDoc, options)
+	_, err := r.users.UpdateByID(
+		ctx, 
+		user.Nickname, 
+		updateDoc, 
+		options,
+	)
 
 	if err != nil {
 		return nil
