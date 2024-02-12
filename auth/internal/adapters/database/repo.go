@@ -77,7 +77,8 @@ func (db *Database) AuthUser(nickname, password string) (models.User, error) {
 				ipv4, 
 				birthDate, 
 				name, 
-				additionalInfo), nil
+				additionalInfo,
+			), nil
 	}
 
 	return models.User{}, nil

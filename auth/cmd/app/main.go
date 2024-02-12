@@ -1,9 +1,8 @@
 package main
 
 import (
-	"auth/internal/grpc"
+	server "auth/internal/grpc"
 )
-
 
 func main() {
 	server.RunServer()

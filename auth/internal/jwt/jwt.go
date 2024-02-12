@@ -1,16 +1,17 @@
-package app
+package jwt
 
 import (
-	"context"
 	"fmt"
 	"time"
+	"errors"
+	"context"
 
 	"auth/internal/models"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-type App struct {
+type AccessRefresh struct {
 	secretKey   []byte
 	hasher      Hasher
 	jwtRepo     JWTRepo
@@ -18,7 +19,7 @@ type App struct {
 	refreshTime time.Duration
 }
 
-func (a App) GenerateJWTPair(ctx context.Context, nickname string) (models.JWTPair, error) {
+func (a AccessRefresh) GenerateJWTPair(ctx context.Context, nickname string) (models.JWTPair, error) {
 	accessToken, err := a.CreateAccessToken(nickname)
 	if err != nil {
 		return models.JWTPair{}, err
@@ -42,7 +43,7 @@ func (a App) GenerateJWTPair(ctx context.Context, nickname string) (models.JWTPa
 	}, nil
 }
 
-func (a App) CreateAccessToken(nickname string) (string, error) {
+func (a AccessRefresh) CreateAccessToken(nickname string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = nickname
@@ -56,7 +57,10 @@ func (a App) CreateAccessToken(nickname string) (string, error) {
 	return tokenString, nil
 }
 
-func (a App) CreateRefreshToken(ctx context.Context, nickname string) (string, error) {
+func (a AccessRefresh) CreateRefreshToken(
+	ctx context.Context,
+	nickname string,
+) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -77,13 +81,8 @@ func (a App) CreateRefreshToken(ctx context.Context, nickname string) (string, e
 	return tokenStirng, nil
 }
 
-func (a App) decodeToken(tokenString string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(
-		tokenString,
-		func(token *jwt.Token) (interface{}, error) {
-			return a.secretKey, nil
-		},
-	)
+func (a AccessRefresh) decodeToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := a.getToken(tokenString)
 
 	if err != nil {
 		return jwt.MapClaims{}, err
@@ -101,7 +100,39 @@ func (a App) decodeToken(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func (a App) refreshAccessToken(
+func (a AccessRefresh) getToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(
+		tokenString,
+		func(token *jwt.Token) (interface{}, error) {
+			return a.secretKey, nil
+		},
+	)
+
+	if err != nil {
+		return &jwt.Token{}, err
+	}
+
+	return token, nil
+}
+
+func (a AccessRefresh) ValidateAccessToken(
+	ctx context.Context,
+	accessToken string,
+) (bool, error) {
+	token, err := a.getToken(accessToken)
+
+	if err != nil {
+		return false, err
+	}
+
+	if !token.Valid {
+		return false, errors.New("Invalid access token")
+	}
+
+	return true, nil
+}
+
+func (a AccessRefresh) RefreshAccessToken(
 	ctx context.Context,
 	refreshTokenString string,
 ) (models.JWTPair, error) {
@@ -131,9 +162,17 @@ func (a App) refreshAccessToken(
 	return a.GenerateJWTPair(ctx, nickname)
 }
 
-func NewApp(hasher Hasher, jwtRepo JWTRepo) App {
-	return App{
-		hasher:  hasher,
-		jwtRepo: jwtRepo,
+func NewApp(secretKey []byte,
+	hasher Hasher,
+	jwtRepo JWTRepo,
+	accessTime time.Duration,
+	refreshTime time.Duration,
+) AccessRefresh {
+	return AccessRefresh{
+		secretKey:   secretKey,
+		hasher:      hasher,
+		jwtRepo:     jwtRepo,
+		accessTime:  accessTime,
+		refreshTime: refreshTime,
 	}
 }
